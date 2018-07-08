@@ -22,28 +22,11 @@
  * SOFTWARE.
 ================================================================================*/
 
-#include "meteor/runtime/Memory.hpp"
+#pragma once
 
-#include <iostream>
+#include <cstdint>
 
-int main()
+namespace meteor
 {
-	try
-	{
-		auto memory = meteor::runtime::Memory {};
-
-		memory.dump(std::cout, 0x0000, 0x0040);
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr
-			<< "*** caught exception ***" << std::endl
-			<< "type: " << typeid(e).name() << std::endl
-			<< "what: " << e.what() << std::endl;
-	}
-	catch (...)
-	{
-		std::cerr
-			<< "*** caught unknown exception ***" << std::endl;
-	}
+	using Word = std::uint16_t;
 }
