@@ -148,7 +148,7 @@ namespace meteor::runtime
 					stream << " " << std::setw(4) << read(i);
 				}
 
-				stream << "\n";
+				stream << std::endl;
 			}
 			catch (...)
 			{

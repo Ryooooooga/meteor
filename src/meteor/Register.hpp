@@ -22,30 +22,47 @@
  * SOFTWARE.
 ================================================================================*/
 
-#include "meteor/runtime/Processor.hpp"
+#pragma once
 
-#include <iostream>
+#include <cstddef>
+#include <ostream>
 
-int main()
+#include "Type.hpp"
+
+namespace meteor
 {
-	try
-	{
-		const auto memory = std::make_shared<meteor::runtime::Memory>();
-		const auto processor = std::make_unique<meteor::runtime::Processor>(memory);
+	constexpr std::size_t numRegisters = 11;
 
-		processor->memory()->dump(std::cout, 0x0000, 0x0040);
-		processor->dumpRegisters(std::cout);
-	}
-	catch (const std::exception& e)
+	enum class Register: Word
 	{
-		std::cerr
-			<< "*** caught exception ***" << std::endl
-			<< "type: " << typeid(e).name() << std::endl
-			<< "what: " << e.what() << std::endl;
-	}
-	catch (...)
+		general0 = 0,
+		general1 = 1,
+		general2 = 2,
+		general3 = 3,
+		general4 = 4,
+		general5 = 5,
+		general6 = 6,
+		general7 = 7,
+		stackPointer = 8,
+		programCounter = 9,
+		flags = 10,
+	};
+
+	[[nodiscard]]
+	constexpr const char* toString(Register reg) noexcept
 	{
-		std::cerr
-			<< "*** caught unknown exception ***" << std::endl;
+		constexpr const char* names[numRegisters] =
+		{
+			"GR0", "GR1", "GR2", "GR3",
+			"GR4", "GR5", "GR6", "GR7",
+			"SP", "PC", "FR",
+		};
+
+		return names[static_cast<Word>(reg)];
+	}
+
+	inline std::ostream& operator <<(std::ostream& stream, Register reg)
+	{
+		return  stream << toString(reg);
 	}
 }
