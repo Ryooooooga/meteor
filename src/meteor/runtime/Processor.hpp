@@ -25,9 +25,11 @@
 #pragma once
 
 #include <array>
+#include <iostream>
 #include <memory>
 
 #include "Memory.hpp"
+#include "../Operation.hpp"
 #include "../Register.hpp"
 
 namespace meteor::runtime
@@ -51,6 +53,21 @@ namespace meteor::runtime
 
 		~Processor() =default;
 
+		bool step()
+		{
+			const auto instruction = fetchProgram();
+			const auto operation = (instruction >> 8) & 0xff;
+			[[maybe_unused]]
+			const auto register1 = static_cast<Register>((instruction >> 4) & 0x07);
+			[[maybe_unused]]
+			const auto register2 = static_cast<Register>((instruction >> 0) & 0x07);
+
+			switch (operation)
+			{
+				default: return executeError(instruction);
+			}
+		}
+
 		[[nodiscard]]
 		std::shared_ptr<Memory> memory() const noexcept
 		{
@@ -66,6 +83,44 @@ namespace meteor::runtime
 		}
 
 	private:
+		[[nodiscard]]
+		Word getRegister(Register reg) const noexcept
+		{
+			return m_registers[static_cast<Word>(reg)];
+		}
+
+		void setRegister(Register reg, Word value) noexcept
+		{
+			m_registers[static_cast<Word>(reg)] = value;
+		}
+
+		[[nodiscard]]
+		Word programCounter() const noexcept
+		{
+			return getRegister(Register::programCounter);
+		}
+
+		void programCounter(Word value) noexcept
+		{
+			setRegister(Register::programCounter, value);
+		}
+
+		[[nodiscard]]
+		Word fetchProgram() noexcept
+		{
+			const auto value = m_memory->read(programCounter());
+			programCounter(programCounter() + 1);
+
+			return value;
+		}
+
+		bool executeError(Word instruction)
+		{
+			std::cerr << boost::format("unknown instruction word #%1$04X.") % instruction << std::endl;
+
+			return false;
+		}
+
 		std::shared_ptr<Memory> m_memory;
 
 		std::array<Word, numRegisters> m_registers;

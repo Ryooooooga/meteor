@@ -30,8 +30,23 @@ int main()
 {
 	try
 	{
-		const auto memory = std::make_shared<meteor::runtime::Memory>();
+		const auto program = std::vector<meteor::Word>
+		{
+			0x3600,         // XOR  GR0, GR0
+			0x1210, 0x0005, // LAD  GR1, #0005, GR0
+			0x2010, 0x0003, // ADDA GR1, #0003, GR0
+		};
+
+		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
 		const auto processor = std::make_unique<meteor::runtime::Processor>(memory);
+
+		std::size_t steps = 0;
+
+		while (steps++ < 65536 && processor->step())
+		{
+		}
+
+		std::cout << "steps: " << steps << std::endl;
 
 		processor->memory()->dump(std::cout, 0x0000, 0x0040);
 		processor->dumpRegisters(std::cout);
