@@ -75,6 +75,8 @@ namespace meteor::runtime
 				case operations::suba_r   : return executeSUBA_r   (register1, register2);
 				case operations::addl_r   : return executeADDL_r   (register1, register2);
 				case operations::subl_r   : return executeSUBL_r   (register1, register2);
+				case operations::and_r    : return executeAND_r    (register1, register2);
+				case operations::or_r     : return executeOR_r     (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
 				default                   : return executeError    (instruction);
 			}
@@ -345,6 +347,36 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			setRegister(r1, value);
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// AND r1, r2
+		bool executeAND_r(Register r1, Register r2)
+		{
+			// r1 <- r1 & r2
+			const Word value = getRegister(r1) & getRegister(r2);
+
+			setRegister(r1, value);
+
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// OR r1, r2
+		bool executeOR_r(Register r1, Register r2)
+		{
+			// r1 <- r1 | r2
+			const Word value = getRegister(r1) | getRegister(r2);
+
+			setRegister(r1, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));

@@ -40,6 +40,8 @@ int main()
 			0x1410,         // LD   GR1, GR0
 			0x2512,         // SUBA GR1, GR2
 			0x2421,         // ADDA GR2, GR1
+			0x3411,         // AND  GR1, GR1
+			0x3522,         // OR   GR2, GR2
 			0x8100,         // RET
 		};
 
