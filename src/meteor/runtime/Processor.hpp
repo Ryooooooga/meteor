@@ -91,6 +91,8 @@ namespace meteor::runtime
 				case operations::cpa_r    : return executeCPA_r    (register1, register2);
 				case operations::cpl_r    : return executeCPL_r    (register1, register2);
 				// 0x50 ~ 0x5f
+				case operations::sll_adr  : return executeSLL_adr  (register1, fetchProgram(), register2);
+				case operations::srl_adr  : return executeSRL_adr  (register1, fetchProgram(), register2);
 				// 0x60 ~ 0x6f
 				case operations::jmi      : return executeJMI      (fetchProgram(), register2);
 				case operations::jnz      : return executeJNZ      (fetchProgram(), register2);
@@ -128,6 +130,12 @@ namespace meteor::runtime
 		constexpr static bool msb(Word value) noexcept
 		{
 			return (value & 0x8000) != 0;
+		}
+
+		[[nodiscard]]
+		constexpr static bool lsb(Word value) noexcept
+		{
+			return (value & 0x0001) != 0;
 		}
 
 		[[nodiscard]]
@@ -574,6 +582,56 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SLL r, adr, x
+		bool executeSLL_adr(Register r, Word adr, Register x)
+		{
+			// r <- r << m[adr + x]
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+
+			Word value = left;
+			bool overflowBit = false;
+
+			for (Word i = 0; i < right; i++)
+			{
+				overflowBit = msb(value);
+				value <<= 1;
+			}
+
+			setRegister(r, value);
+
+			overflowFlag(overflowBit);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SRL r, adr, x
+		bool executeSRL_adr(Register r, Word adr, Register x)
+		{
+			// r <- r >> m[adr + x]
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+
+			Word value = left;
+			bool overflowBit = false;
+
+			for (Word i = 0; i < right; i++)
+			{
+				overflowBit = lsb(value);
+				value >>= 1;
+			}
+
+			setRegister(r, value);
+
+			overflowFlag(overflowBit);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
 
