@@ -91,6 +91,8 @@ namespace meteor::runtime
 				case operations::cpa_r    : return executeCPA_r    (register1, register2);
 				case operations::cpl_r    : return executeCPL_r    (register1, register2);
 				// 0x50 ~ 0x5f
+				case operations::sla_adr  : return executeSLA_adr  (register1, fetchProgram(), register2);
+				case operations::sra_adr  : return executeSRA_adr  (register1, fetchProgram(), register2);
 				case operations::sll_adr  : return executeSLL_adr  (register1, fetchProgram(), register2);
 				case operations::srl_adr  : return executeSRL_adr  (register1, fetchProgram(), register2);
 				// 0x60 ~ 0x6f
@@ -582,6 +584,62 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SLA r, adr, x
+		bool executeSLA_adr(Register r, Word adr, Register x)
+		{
+			// r <- r << m[adr + x]
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+
+			Word value = left;
+			bool overflowBit = false;
+			bool signBit = msb(left);
+
+			for (Word i = 0; i < right; i++)
+			{
+				overflowBit = msb(value << 1);
+				value <<= 1;
+				value &= 0x7fff;
+				value |= signBit ? 0x8000 : 0x0000;
+			}
+
+			setRegister(r, value);
+
+			overflowFlag(overflowBit);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SRA r, adr, x
+		bool executeSRA_adr(Register r, Word adr, Register x)
+		{
+			// r <- r >> m[adr + x]
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+
+			Word value = left;
+			bool overflowBit = false;
+			bool signBit = msb(left);
+
+			for (Word i = 0; i < right; i++)
+			{
+				overflowBit = lsb(value);
+				value >>= 1;
+				value &= 0x7fff;
+				value |= signBit ? 0x8000 : 0x0000;
+			}
+
+			setRegister(r, value);
+
+			overflowFlag(overflowBit);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
 

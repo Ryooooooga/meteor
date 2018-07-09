@@ -32,9 +32,9 @@ int main()
 	{
 		const auto program = std::vector<meteor::Word>
 		{
-			0x1210, 0x2005, //     LAD  GR1, #0005, GR0
-			0x5210, 0x0003, //     SLL  GR1, #0003, GR0
-			0x5310, 0x0003, //     SRL  GR1, #0003, GR0
+			0x1210, 0x8005, //     LAD  GR1, #0005, GR0
+			0x5010, 0x0003, //     SLA  GR1, #0003, GR0
+			0x5110, 0x0003, //     SRA  GR1, #0003, GR0
 			0x8100,         //     RET
 		};
 
