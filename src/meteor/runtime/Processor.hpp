@@ -170,7 +170,7 @@ namespace meteor::runtime
 		bool executeLD_adr(Register r, Word adr, Register x)
 		{
 			// r <- m[adr + x]
-			const auto value = m_memory->read(adr + getRegister(x));
+			const Word value = m_memory->read(adr + getRegister(x));
 
 			setRegister(r, value);
 			overflowFlag(false);
@@ -184,7 +184,7 @@ namespace meteor::runtime
 		bool executeST(Register r, Word adr, Register x)
 		{
 			// address <- r
-			const auto value = getRegister(r);
+			const Word value = getRegister(r);
 
 			m_memory->write(adr + getRegister(x), value);
 			overflowFlag(false);
@@ -198,7 +198,7 @@ namespace meteor::runtime
 		bool executeLAD(Register r, Word adr, Register x)
 		{
 			// r <- address
-			const auto value = adr + getRegister(x);
+			const Word value = adr + getRegister(x);
 
 			setRegister(r, value);
 
@@ -209,7 +209,7 @@ namespace meteor::runtime
 		bool executeLD_r(Register r1, Register r2)
 		{
 			// r1 <- r2
-			const auto value = getRegister(r2);
+			const Word value = getRegister(r2);
 
 			setRegister(r1, value);
 			overflowFlag(false);
@@ -223,9 +223,9 @@ namespace meteor::runtime
 		bool executeADDA_adr(Register r, Word adr, Register x)
 		{
 			// r <- r + address
-			const auto left = getRegister(r);
-			const auto right = adr + getRegister(x);
-			const auto value = left + right;
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+			const Word value = left + right;
 
 			setRegister(r, value);
 			overflowFlag(msb(~(left ^ right) & (left ^ value)));
@@ -239,9 +239,9 @@ namespace meteor::runtime
 		bool executeADDA_r(Register r1, Register r2)
 		{
 			// r1 <- r1 + r2
-			const auto left = getRegister(r1);
-			const auto right = getRegister(r2);
-			const auto value = left + right;
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left + right;
 
 			setRegister(r1, value);
 			overflowFlag(msb(~(left ^ right) & (left ^ value)));
@@ -255,9 +255,9 @@ namespace meteor::runtime
 		bool executeSUBA_r(Register r1, Register r2)
 		{
 			// r1 <- r1 - r2
-			const auto left = getRegister(r1);
-			const auto right = getRegister(r2);
-			const auto value = left - right;
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left - right;
 
 			setRegister(r1, value);
 			overflowFlag(msb((left ^ right) & (left ^ value)));
@@ -271,7 +271,7 @@ namespace meteor::runtime
 		bool executeXOR_r(Register r1, Register r2)
 		{
 			// r1 <- r1 ^ r2
-			const auto value = getRegister(r1) ^ getRegister(r2);
+			const Word value = getRegister(r1) ^ getRegister(r2);
 
 			setRegister(r1, value);
 
