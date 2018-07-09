@@ -35,6 +35,7 @@ int main()
 			0x3600,         // XOR  GR0, GR0
 			0x1210, 0x0005, // LAD  GR1, #0005, GR0
 			0x2010, 0x0003, // ADDA GR1, #0003, GR0
+			0x8100,         // RET
 		};
 
 		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
@@ -44,12 +45,14 @@ int main()
 
 		while (steps++ < 65536 && processor->step())
 		{
+			processor->memory()->dump(std::cout, 0x0000, 0x0040);
+			processor->dumpRegisters(std::cout);
 		}
-
-		std::cout << "steps: " << steps << std::endl;
 
 		processor->memory()->dump(std::cout, 0x0000, 0x0040);
 		processor->dumpRegisters(std::cout);
+
+		std::cout << "steps: " << steps << std::endl;
 	}
 	catch (const std::exception& e)
 	{

@@ -57,15 +57,14 @@ namespace meteor::runtime
 		{
 			const auto instruction = fetchProgram();
 			const auto operation = (instruction >> 8) & 0xff;
-			[[maybe_unused]]
 			const auto register1 = static_cast<Register>((instruction >> 4) & 0x07);
-			[[maybe_unused]]
 			const auto register2 = static_cast<Register>((instruction >> 0) & 0x07);
 
 			switch (operation)
 			{
 				case operations::nop: return executeNOP();
 				case operations::lad: return executeLAD(register1, fetchProgram(), register2);
+				case operations::adda_adr: return executeADDA_adr(register1, fetchProgram(), register2);
 				case operations::xor_r: return executeXOR_r(register1, register2);
 				default: return executeError(instruction);
 			}
@@ -166,7 +165,25 @@ namespace meteor::runtime
 		bool executeLAD(Register r, Word adr, Register x)
 		{
 			// r <- address
-			setRegister(r, adr + getRegister(x));
+			const auto value = adr + getRegister(x);
+
+			setRegister(r, value);
+
+			return true;
+		}
+
+		// ADDA r, adr, x
+		bool executeADDA_adr(Register r, Word adr, Register x)
+		{
+			// r <- r + address
+			const auto left = getRegister(r);
+			const auto right = adr + getRegister(x);
+			const auto value = left + right;
+
+			setRegister(r, value);
+			overflowFlag(msb(~(left ^ right) & (left ^ value)));
+			zeroFlag(value == 0);
+			signFlag(msb(value));
 
 			return true;
 		}
