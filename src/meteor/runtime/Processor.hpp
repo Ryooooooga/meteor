@@ -31,6 +31,7 @@
 #include "Memory.hpp"
 #include "../Operation.hpp"
 #include "../Register.hpp"
+#include "../SystemCall.hpp"
 
 namespace meteor::runtime
 {
@@ -109,6 +110,7 @@ namespace meteor::runtime
 				case operations::call     : return executeCALL     (fetchProgram(), register2);
 				case operations::ret      : return executeRET      ();
 				// 0xf0 ~ 0xff
+				case operations::svc      : return executeSVC      (fetchProgram(), register2);
 				default                   : return executeError    (instruction);
 			}
 		}
@@ -815,6 +817,25 @@ namespace meteor::runtime
 			programCounter(pop());
 
 			return true;
+		}
+
+		// SVC adr, x
+		bool executeSVC(Word adr, Register x)
+		{
+			switch (adr + getRegister(x))
+			{
+				case system_calls::exit:
+					// Exit system call.
+					std::cout << boost::format("exit status %1$d") % getRegister(Register::general1) << std::endl;
+
+					return false;
+
+				default:
+					// Error.
+					std::cerr << boost::format("invalid system call #%1$04X.") % (adr + getRegister(x)) << std::endl;
+
+					return false;
+			}
 		}
 
 		bool executeError(Word instruction)
