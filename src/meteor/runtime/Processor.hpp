@@ -86,6 +86,10 @@ namespace meteor::runtime
 				case operations::or_r     : return executeOR_r     (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
 				// 0x40 ~ 0x4f
+				case operations::cpa_adr  : return executeCPA_adr  (register1, fetchProgram(), register2);
+				case operations::cpl_adr  : return executeCPL_adr  (register1, fetchProgram(), register2);
+				case operations::cpa_r    : return executeCPA_r    (register1, register2);
+				case operations::cpl_r    : return executeCPL_r    (register1, register2);
 				// 0x50 ~ 0x5f
 				// 0x60 ~ 0x6f
 				case operations::jmi      : return executeJMI      (fetchProgram(), register2);
@@ -506,6 +510,66 @@ namespace meteor::runtime
 			const Word value = left ^ right;
 
 			setRegister(r1, value);
+
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// CPA r, adr, x
+		bool executeCPA_adr(Register r, Word adr, Register x)
+		{
+			// r <- r - address
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+			const Word value = left - right;
+
+			overflowFlag(msb((left ^ right) & (left ^ value)));
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// CPL r, adr, x
+		bool executeCPL_adr(Register r, Word adr, Register x)
+		{
+			// r <- r - address
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+			const Word value = left - right;
+
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// CPA r1, r2
+		bool executeCPA_r(Register r1, Register r2)
+		{
+			// r1 <- r1 - r2
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left - right;
+
+			overflowFlag(msb((left ^ right) & (left ^ value)));
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// CPL r1, r2
+		bool executeCPL_r(Register r1, Register r2)
+		{
+			// r1 <- r1 - r2
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left - right;
 
 			overflowFlag(false);
 			zeroFlag(value == 0);

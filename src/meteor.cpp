@@ -36,14 +36,15 @@ int main()
 			0x1410,         //     LD   GR1, GR0
 			0x1220, 0x0001, //     LAD  GR2, #0001, GR0
 			0x1230, 0x000a, //     LAD  GR3, #000a, GR0
-			0x1441,         // .L  LD   GR4, GR1
+			0x4030, 0x0001, // .L  CPA  GR3, #0001, GR0
+			0x6100, 0x0013, //     JMI  .E, GR0
+			0x1441,         //     LD   GR4, GR1
 			0x1412,         //     LD   GR1, GR2
 			0x2424,         //     ADDA GR2, GR4
 			0x2130, 0x0001, //     SUBA GR3, #0001, GR0
 			0x7001, 0x0000, //     PUSH #0000, GR1
-			0x6500, 0x0006, //     JPL  .L, GR0
-			0x7170,         //     POP  GR7
-			0x8100,         //     RET
+			0x6400, 0x0006, //     JUMP .L, GR0
+			0x8100,         // .E  RET
 		};
 
 		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
