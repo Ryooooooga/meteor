@@ -64,6 +64,9 @@ namespace meteor::runtime
 
 			switch (operation)
 			{
+				case operations::nop: return executeNOP();
+				case operations::lad: return executeLAD(register1, fetchProgram(), register2);
+				case operations::xor_r: return executeXOR_r(register1, register2);
 				default: return executeError(instruction);
 			}
 		}
@@ -83,6 +86,12 @@ namespace meteor::runtime
 		}
 
 	private:
+		[[nodiscard]]
+		constexpr static bool msb(Word value) noexcept
+		{
+			return (value & 0x8000) != 0;
+		}
+
 		[[nodiscard]]
 		Word getRegister(Register reg) const noexcept
 		{
@@ -106,12 +115,75 @@ namespace meteor::runtime
 		}
 
 		[[nodiscard]]
+		bool overflowFlag() const noexcept
+		{
+			return (getRegister(Register::flags) & 0b001) != 0;
+		}
+
+		[[nodiscard]]
+		bool zeroFlag() const noexcept
+		{
+			return (getRegister(Register::flags) & 0b010) != 0;
+		}
+
+		[[nodiscard]]
+		bool signFlag() const noexcept
+		{
+			return (getRegister(Register::flags) & 0b100) != 0;
+		}
+
+		void overflowFlag(bool flag) noexcept
+		{
+			setRegister(Register::flags, (getRegister(Register::flags) & 0b110) | (flag ? 0b001 : 0b000));
+		}
+
+		void zeroFlag(bool flag) noexcept
+		{
+			setRegister(Register::flags, (getRegister(Register::flags) & 0b101) | (flag ? 0b010 : 0b000));
+		}
+
+		void signFlag(bool flag) noexcept
+		{
+			setRegister(Register::flags, (getRegister(Register::flags) & 0b011) | (flag ? 0b100 : 0b000));
+		}
+
+		[[nodiscard]]
 		Word fetchProgram() noexcept
 		{
 			const auto value = m_memory->read(programCounter());
 			programCounter(programCounter() + 1);
 
 			return value;
+		}
+
+		// NOP
+		bool executeNOP()
+		{
+			return true;
+		}
+
+		// LAD r, adr, x
+		bool executeLAD(Register r, Word adr, Register x)
+		{
+			// r <- address
+			setRegister(r, adr + getRegister(x));
+
+			return true;
+		}
+
+		// XOR r1, r2
+		bool executeXOR_r(Register r1, Register r2)
+		{
+			// r1 <- r1 ^ r2
+			const auto value = getRegister(r1) ^ getRegister(r2);
+
+			setRegister(r1, value);
+
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
 		}
 
 		bool executeError(Word instruction)
