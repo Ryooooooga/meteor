@@ -40,7 +40,9 @@ int main()
 			0x1412,         //     LD   GR1, GR2
 			0x2424,         //     ADDA GR2, GR4
 			0x2130, 0x0001, //     SUBA GR3, #0001, GR0
+			0x7001, 0x0000, //     PUSH #0000, GR1
 			0x6500, 0x0006, //     JPL  .L, GR0
+			0x7170,         //     POP  GR7
 			0x8100,         //     RET
 		};
 
@@ -51,11 +53,13 @@ int main()
 
 		while (steps++ < 100 && processor->step())
 		{
-			processor->memory()->dump(std::cout, 0x0000, 0x0040);
+			processor->memory()->dump(std::cout, 0x0000, 0x0020);
+			processor->memory()->dump(std::cout, 0xfff0, 0x10000);
 			processor->dumpRegisters(std::cout);
 		}
 
-		processor->memory()->dump(std::cout, 0x0000, 0x0040);
+		processor->memory()->dump(std::cout, 0x0000, 0x0020);
+		processor->memory()->dump(std::cout, 0xfff0, 0x10000);
 		processor->dumpRegisters(std::cout);
 
 		std::cout << "steps: " << steps << std::endl;

@@ -62,11 +62,14 @@ namespace meteor::runtime
 
 			switch (operation)
 			{
+				// 0x00 ~ 0x0f
 				case operations::nop      : return executeNOP      ();
+				// 0x10 ~ 0x1f
 				case operations::ld_adr   : return executeLD_adr   (register1, fetchProgram(), register2);
 				case operations::st       : return executeST       (register1, fetchProgram(), register2);
 				case operations::lad      : return executeLAD      (register1, fetchProgram(), register2);
 				case operations::ld_r     : return executeLD_r     (register1, register2);
+				// 0x20 ~ 0x2f
 				case operations::adda_adr : return executeADDA_adr (register1, fetchProgram(), register2);
 				case operations::suba_adr : return executeSUBA_adr (register1, fetchProgram(), register2);
 				case operations::addl_adr : return executeADDL_adr (register1, fetchProgram(), register2);
@@ -75,16 +78,25 @@ namespace meteor::runtime
 				case operations::suba_r   : return executeSUBA_r   (register1, register2);
 				case operations::addl_r   : return executeADDL_r   (register1, register2);
 				case operations::subl_r   : return executeSUBL_r   (register1, register2);
+				// 0x30 ~ 0x3f
 				case operations::and_adr  : return executeAND_adr  (register1, fetchProgram(), register2);
 				case operations::or_adr   : return executeOR_adr   (register1, fetchProgram(), register2);
 				case operations::xor_adr  : return executeXOR_adr  (register1, fetchProgram(), register2);
 				case operations::and_r    : return executeAND_r    (register1, register2);
 				case operations::or_r     : return executeOR_r     (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
+				// 0x40 ~ 0x4f
+				// 0x50 ~ 0x5f
+				// 0x60 ~ 0x6f
 				case operations::jnz      : return executeJNZ      (fetchProgram(), register2);
 				case operations::jze      : return executeJZE      (fetchProgram(), register2);
 				case operations::jump     : return executeJUMP     (fetchProgram(), register2);
 				case operations::jpl      : return executeJPL      (fetchProgram(), register2);
+				// 0x70 ~ 0x7f
+				case operations::push     : return executePUSH     (fetchProgram(), register2);
+				case operations::pop      : return executePOP      (register1);
+				// 0x80 ~ 0x8f
+				// 0xf0 ~ 0xff
 				default                   : return executeError    (instruction);
 			}
 		}
@@ -119,6 +131,17 @@ namespace meteor::runtime
 		void setRegister(Register reg, Word value) noexcept
 		{
 			m_registers[static_cast<Word>(reg)] = value;
+		}
+
+		[[nodiscard]]
+		Word stackPointer() const noexcept
+		{
+			return getRegister(Register::stackPointer);
+		}
+
+		void stackPointer(Word value) noexcept
+		{
+			setRegister(Register::stackPointer, value);
 		}
 
 		[[nodiscard]]
@@ -170,6 +193,21 @@ namespace meteor::runtime
 		{
 			const auto value = m_memory->read(programCounter());
 			programCounter(programCounter() + 1);
+
+			return value;
+		}
+
+		void push(Word value) noexcept
+		{
+			stackPointer(stackPointer() - 1);
+			m_memory->write(stackPointer(), value);
+		}
+
+		[[nodiscard]]
+		Word pop() noexcept
+		{
+			const Word value = m_memory->read(stackPointer());
+			stackPointer(stackPointer() + 1);
 
 			return value;
 		}
@@ -518,6 +556,26 @@ namespace meteor::runtime
 				// pc <- address
 				programCounter(adr + getRegister(x));
 			}
+
+			return true;
+		}
+
+		// PUSH adr, x
+		bool executePUSH(Word adr, Register x)
+		{
+			// sp    <- sp - 1
+			// m[sp] <- address
+			push(adr + getRegister(x));
+
+			return true;
+		}
+
+		// POP r
+		bool executePOP(Register r)
+		{
+			// r  <- m[sp]
+			// sp <- sp + 1
+			setRegister(r, pop());
 
 			return true;
 		}
