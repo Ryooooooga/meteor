@@ -68,6 +68,7 @@ namespace meteor::runtime
 				case operations::lad      : return executeLAD      (register1, fetchProgram(), register2);
 				case operations::ld_r     : return executeLD_r     (register1, register2);
 				case operations::adda_adr : return executeADDA_adr (register1, fetchProgram(), register2);
+				case operations::adda_r   : return executeADDA_r   (register1, register2);
 				case operations::suba_r   : return executeSUBA_r   (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
 				default                   : return executeError    (instruction);
@@ -227,6 +228,22 @@ namespace meteor::runtime
 			const auto value = left + right;
 
 			setRegister(r, value);
+			overflowFlag(msb(~(left ^ right) & (left ^ value)));
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// ADDA r1, r2
+		bool executeADDA_r(Register r1, Register r2)
+		{
+			// r1 <- r1 + r2
+			const auto left = getRegister(r1);
+			const auto right = getRegister(r2);
+			const auto value = left + right;
+
+			setRegister(r1, value);
 			overflowFlag(msb(~(left ^ right) & (left ^ value)));
 			zeroFlag(value == 0);
 			signFlag(msb(value));
