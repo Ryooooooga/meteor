@@ -78,6 +78,9 @@ namespace meteor::runtime
 				case operations::and_r    : return executeAND_r    (register1, register2);
 				case operations::or_r     : return executeOR_r     (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
+				case operations::jnz      : return executeJNZ      (fetchProgram(), register2);
+				case operations::jze      : return executeJZE      (fetchProgram(), register2);
+				case operations::jump     : return executeJUMP     (fetchProgram(), register2);
 				default                   : return executeError    (instruction);
 			}
 		}
@@ -406,6 +409,41 @@ namespace meteor::runtime
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
+
+			return true;
+		}
+
+		// JNZ adr, x
+		bool executeJNZ(Word adr, Register x)
+		{
+			// ZF == 0
+			if (!zeroFlag())
+			{
+				// pc <- address
+				programCounter(adr + getRegister(x));
+			}
+
+			return true;
+		}
+
+		// JZE adr, x
+		bool executeJZE(Word adr, Register x)
+		{
+			// ZF == 1
+			if (zeroFlag())
+			{
+				// pc <- address
+				programCounter(adr + getRegister(x));
+			}
+
+			return true;
+		}
+
+		// JUMP adr, x
+		bool executeJUMP(Word adr, Register x)
+		{
+			// pc <- address
+			programCounter(adr + getRegister(x));
 
 			return true;
 		}
