@@ -81,6 +81,7 @@ namespace meteor::runtime
 				case operations::jnz      : return executeJNZ      (fetchProgram(), register2);
 				case operations::jze      : return executeJZE      (fetchProgram(), register2);
 				case operations::jump     : return executeJUMP     (fetchProgram(), register2);
+				case operations::jpl      : return executeJPL      (fetchProgram(), register2);
 				default                   : return executeError    (instruction);
 			}
 		}
@@ -444,6 +445,19 @@ namespace meteor::runtime
 		{
 			// pc <- address
 			programCounter(adr + getRegister(x));
+
+			return true;
+		}
+
+		// JPL adr, x
+		bool executeJPL(Word adr, Register x)
+		{
+			// ZF == 0 && SF == 0
+			if (!zeroFlag() && !signFlag())
+			{
+				// pc <- address
+				programCounter(adr + getRegister(x));
+			}
 
 			return true;
 		}

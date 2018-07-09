@@ -40,7 +40,7 @@ int main()
 			0x1412,         //     LD   GR1, GR2
 			0x2424,         //     ADDA GR2, GR4
 			0x2130, 0x0001, //     SUBA GR3, #0001, GR0
-			0x6200, 0x0006, //     JNZ  .L, GR0
+			0x6500, 0x0006, //     JPL  .L, GR0
 			0x8100,         //     RET
 		};
 
