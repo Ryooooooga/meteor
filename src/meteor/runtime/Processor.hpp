@@ -176,10 +176,11 @@ namespace meteor::runtime
 		// LD r, adr, x
 		bool executeLD_adr(Register r, Word adr, Register x)
 		{
-			// r <- m[adr + x]
+			// r <- m[address]
 			const Word value = m_memory->read(adr + getRegister(x));
 
 			setRegister(r, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -194,6 +195,7 @@ namespace meteor::runtime
 			const Word value = getRegister(r);
 
 			m_memory->write(adr + getRegister(x), value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -219,6 +221,7 @@ namespace meteor::runtime
 			const Word value = getRegister(r2);
 
 			setRegister(r1, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -235,6 +238,7 @@ namespace meteor::runtime
 			const Word value = left + right;
 
 			setRegister(r, value);
+
 			overflowFlag(msb(~(left ^ right) & (left ^ value)));
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -251,6 +255,7 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			setRegister(r, value);
+
 			overflowFlag(msb((left ^ right) & (left ^ value)));
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -267,6 +272,7 @@ namespace meteor::runtime
 			const Word value = left + right;
 
 			setRegister(r, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -283,6 +289,7 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			setRegister(r, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -299,6 +306,7 @@ namespace meteor::runtime
 			const Word value = left + right;
 
 			setRegister(r1, value);
+
 			overflowFlag(msb(~(left ^ right) & (left ^ value)));
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -315,6 +323,7 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			setRegister(r1, value);
+
 			overflowFlag(msb((left ^ right) & (left ^ value)));
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -331,6 +340,7 @@ namespace meteor::runtime
 			const Word value = left + right;
 
 			setRegister(r1, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
@@ -347,6 +357,7 @@ namespace meteor::runtime
 			const Word value = left - right;
 
 			setRegister(r1, value);
+
 			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));

@@ -32,17 +32,16 @@ int main()
 	{
 		const auto program = std::vector<meteor::Word>
 		{
-			0x3600,         // XOR  GR0, GR0
-			0x1210, 0x0005, // LAD  GR1, #0005, GR0
-			0x2010, 0x0003, // ADDA GR1, #0003, GR0
-			0x1110, 0x0030, // ST   GR1, #0030, GR0
-			0x1021, 0x0028, // LD   GR2, #0028, GR1
-			0x1410,         // LD   GR1, GR0
-			0x2512,         // SUBA GR1, GR2
-			0x2421,         // ADDA GR2, GR1
-			0x3411,         // AND  GR1, GR1
-			0x3522,         // OR   GR2, GR2
-			0x8100,         // RET
+			0x3600,         //     XOR  GR0, GR0
+			0x1410,         //     LD   GR1, GR0
+			0x1220, 0x0001, //     LAD  GR2, #0001, GR0
+			0x1230, 0x000a, //     LAD  GR3, #000a, GR0
+			0x1441,         // .L  LD   GR4, GR1
+			0x1412,         //     LD   GR1, GR2
+			0x2424,         //     ADDA GR2, GR4
+			0x2130, 0x0001, //     SUBA GR3, #0001, GR0
+			0x6200, 0x0006, //     JNZ  .L, GR0
+			0x8100,         //     RET
 		};
 
 		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
