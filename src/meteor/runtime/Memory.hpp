@@ -29,6 +29,8 @@
 #include <ostream>
 #include <vector>
 
+#include <boost/format.hpp>
+
 #include "../Type.hpp"
 
 namespace meteor::runtime
@@ -89,74 +91,51 @@ namespace meteor::runtime
 
 			constexpr auto width = std::size_t {16};
 
-			// Save the stream states.
-			const auto flags = stream.flags(std::ios::hex | std::ios::uppercase);
-			const auto fill = stream.fill('0');
-			const auto fillWidth = stream.width();
+			// Output header.
+			stream << "    |";
 
-			// Restore the stream states.
-			const auto restore = [&]()
+			for (std::size_t row = 0; row < width; row++)
 			{
-				stream.flags(flags);
-				stream.fill(fill);
-				stream.width(fillWidth);
-			};
-
-			try
-			{
-				// Output header.
-				stream << "    |";
-
-				for (std::size_t row = 0; row < width; row++)
-				{
-					stream << " " << std::setw(4) << row;
-				}
-
-				stream << "\n";
-				stream << "----+";
-
-				for (std::size_t row = 0; row < width; row++)
-				{
-					stream << "-----";
-				}
-
-				// Output data.
-				const auto rowOffset = begin % width;
-				const auto firstColumn = begin / width;
-
-				for (std::size_t i = begin; i < end; i++)
-				{
-					const auto row = i % width;
-					const auto column = i / width;
-
-					if (column == firstColumn && row == rowOffset)
-					{
-						stream << "\n";
-						stream << std::setw(4) << column * width << "|";
-
-						for (std::size_t i = 0; i < rowOffset; i++)
-						{
-							stream << " " << "    ";
-						}
-					}
-					else if (row == 0)
-					{
-						stream << "\n";
-						stream << std::setw(4) << column * width << "|";
-					}
-
-					stream << " " << std::setw(4) << read(i);
-				}
-
-				stream << std::endl;
-			}
-			catch (...)
-			{
-				restore();
-				throw;
+				stream << boost::format(" %1$04X") % row;
 			}
 
-			restore();
+			stream << "\n";
+			stream << "----+";
+
+			for (std::size_t row = 0; row < width; row++)
+			{
+				stream << "-----";
+			}
+
+			// Output data.
+			const auto rowOffset = begin % width;
+			const auto firstColumn = begin / width;
+
+			for (std::size_t i = begin; i < end; i++)
+			{
+				const auto row = i % width;
+				const auto column = i / width;
+
+				if (column == firstColumn && row == rowOffset)
+				{
+					stream << "\n";
+					stream << boost::format("%1$04X|") % (column * width);
+
+					for (std::size_t i = 0; i < rowOffset; i++)
+					{
+						stream << " " << "    ";
+					}
+				}
+				else if (row == 0)
+				{
+					stream << "\n";
+					stream << boost::format("%1$04X|") % (column * width);
+				}
+
+				stream << boost::format(" %1$04X") % read(i);
+			}
+
+			stream << std::endl;
 		}
 
 	private:

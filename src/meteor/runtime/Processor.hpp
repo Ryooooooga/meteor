@@ -59,38 +59,10 @@ namespace meteor::runtime
 
 		void dumpRegisters(std::ostream& stream)
 		{
-			// Save the stream states.
-			const auto flags = stream.flags(std::ios::uppercase);
-			const auto fill = stream.fill();
-			const auto fillWidth = stream.width();
-
-			// Restore the stream states.
-			const auto restore = [&]()
+			for (Word i = 0; i < numRegisters; i++)
 			{
-				stream.flags(flags);
-				stream.fill(fill);
-				stream.width(fillWidth);
-			};
-
-			try
-			{
-				for (Word i = 0; i < numRegisters; i++)
-				{
-					const auto value = m_registers[i];
-
-					stream
-						<< std::setw(3) << std::setfill(' ') << static_cast<Register>(i)
-						<< " = " << "#" << std::setw(4) << std::setfill('0') << std::hex << value
-						<< " = " << std::dec << value << std::endl;
-				}
+				stream << boost::format("%1$3s = #%2$04X = %2$d") % static_cast<Register>(i) % m_registers[i] << std::endl;
 			}
-			catch (...)
-			{
-				restore();
-				throw;
-			}
-
-			restore();
 		}
 
 	private:
