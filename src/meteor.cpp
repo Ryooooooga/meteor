@@ -35,6 +35,7 @@ int main()
 			0x3600,         // XOR  GR0, GR0
 			0x1210, 0x0005, // LAD  GR1, #0005, GR0
 			0x2010, 0x0003, // ADDA GR1, #0003, GR0
+			0x1110, 0x0030, // ST   GR1, #0030, GR0
 			0x8100,         // RET
 		};
 
@@ -43,7 +44,7 @@ int main()
 
 		std::size_t steps = 0;
 
-		while (steps++ < 65536 && processor->step())
+		while (steps++ < 100 && processor->step())
 		{
 			processor->memory()->dump(std::cout, 0x0000, 0x0040);
 			processor->dumpRegisters(std::cout);
