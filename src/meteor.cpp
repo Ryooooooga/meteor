@@ -38,6 +38,7 @@ int main()
 			0x1110, 0x0030, // ST   GR1, #0030, GR0
 			0x1021, 0x0028, // LD   GR2, #0028, GR1
 			0x1410,         // LD   GR1, GR0
+			0x2512,         // SUBA GR1, GR2
 			0x8100,         // RET
 		};
 
