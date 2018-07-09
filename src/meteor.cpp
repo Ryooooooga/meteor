@@ -44,7 +44,7 @@ int main()
 			0x2130, 0x0001, //     SUBA GR3, #0001, GR0
 			0x7001, 0x0000, //     PUSH #0000, GR1
 			0x6400, 0x0006, //     JUMP .L, GR0
-			0x8100,         // .E  RET
+			0xf000, 0x0000, // .E  SVC  #0000
 		};
 
 		const auto memory = std::make_shared<meteor::runtime::Memory>(program);

@@ -102,6 +102,8 @@ namespace meteor::runtime
 				case operations::push     : return executePUSH     (fetchProgram(), register2);
 				case operations::pop      : return executePOP      (register1);
 				// 0x80 ~ 0x8f
+				case operations::call     : return executeCALL     (fetchProgram(), register2);
+				case operations::ret      : return executeRET      ();
 				// 0xf0 ~ 0xff
 				default                   : return executeError    (instruction);
 			}
@@ -668,6 +670,33 @@ namespace meteor::runtime
 			// r  <- m[sp]
 			// sp <- sp + 1
 			setRegister(r, pop());
+
+			return true;
+		}
+
+		// CALL adr, x
+		bool executeCALL(Word adr, Register x)
+		{
+			// sp    <- sp - 1
+			// m[sp] <- pc
+			// pc    <- address
+			push(programCounter());
+			programCounter(adr + getRegister(x));
+
+			return true;
+		}
+
+		// RET
+		bool executeRET()
+		{
+			if (stackPointer() == 0x0000)
+			{
+				return false;
+			}
+
+			// r  <- m[sp]
+			// sp <- sp + 1
+			programCounter(pop());
 
 			return true;
 		}
