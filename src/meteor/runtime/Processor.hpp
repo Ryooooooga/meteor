@@ -63,6 +63,7 @@ namespace meteor::runtime
 			switch (operation)
 			{
 				case operations::nop: return executeNOP();
+				case operations::ld_adr: return executeLD_adr(register1, fetchProgram(), register2);
 				case operations::st: return executeST(register1, fetchProgram(), register2);
 				case operations::lad: return executeLAD(register1, fetchProgram(), register2);
 				case operations::adda_adr: return executeADDA_adr(register1, fetchProgram(), register2);
@@ -159,6 +160,20 @@ namespace meteor::runtime
 		// NOP
 		bool executeNOP()
 		{
+			return true;
+		}
+
+		// LD r, adr, x
+		bool executeLD_adr(Register r, Word adr, Register x)
+		{
+			// r <- m[adr + x]
+			const auto value = m_memory->read(adr + getRegister(x));
+
+			setRegister(r, value);
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
 			return true;
 		}
 
