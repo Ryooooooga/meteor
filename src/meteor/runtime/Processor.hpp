@@ -69,8 +69,12 @@ namespace meteor::runtime
 				case operations::ld_r     : return executeLD_r     (register1, register2);
 				case operations::adda_adr : return executeADDA_adr (register1, fetchProgram(), register2);
 				case operations::suba_adr : return executeSUBA_adr (register1, fetchProgram(), register2);
+				case operations::addl_adr : return executeADDL_adr (register1, fetchProgram(), register2);
+				case operations::subl_adr : return executeSUBL_adr (register1, fetchProgram(), register2);
 				case operations::adda_r   : return executeADDA_r   (register1, register2);
 				case operations::suba_r   : return executeSUBA_r   (register1, register2);
+				case operations::addl_r   : return executeADDL_r   (register1, register2);
+				case operations::subl_r   : return executeSUBL_r   (register1, register2);
 				case operations::xor_r    : return executeXOR_r    (register1, register2);
 				default                   : return executeError    (instruction);
 			}
@@ -252,6 +256,38 @@ namespace meteor::runtime
 			return true;
 		}
 
+		// ADDL r, adr, x
+		bool executeADDL_adr(Register r, Word adr, Register x)
+		{
+			// r <- r + address
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+			const Word value = left + right;
+
+			setRegister(r, value);
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SUBL r, adr, x
+		bool executeSUBL_adr(Register r, Word adr, Register x)
+		{
+			// r <- r - address
+			const Word left = getRegister(r);
+			const Word right = adr + getRegister(x);
+			const Word value = left - right;
+
+			setRegister(r, value);
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
 		// ADDA r1, r2
 		bool executeADDA_r(Register r1, Register r2)
 		{
@@ -278,6 +314,38 @@ namespace meteor::runtime
 
 			setRegister(r1, value);
 			overflowFlag(msb((left ^ right) & (left ^ value)));
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// ADDL r1, r2
+		bool executeADDL_r(Register r1, Register r2)
+		{
+			// r1 <- r1 + r2
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left + right;
+
+			setRegister(r1, value);
+			overflowFlag(false);
+			zeroFlag(value == 0);
+			signFlag(msb(value));
+
+			return true;
+		}
+
+		// SUBL r1, r2
+		bool executeSUBL_r(Register r1, Register r2)
+		{
+			// r1 <- r1 - r2
+			const Word left = getRegister(r1);
+			const Word right = getRegister(r2);
+			const Word value = left - right;
+
+			setRegister(r1, value);
+			overflowFlag(false);
 			zeroFlag(value == 0);
 			signFlag(msb(value));
 
