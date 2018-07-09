@@ -11,4 +11,8 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os -DNDEBUG -march=native")
 set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE Release)
 
+find_package(Boost REQUIRED)
+
+include_directories(${Boost_INCLUDE_DIR})
+
 add_subdirectory(src)
