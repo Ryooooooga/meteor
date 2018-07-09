@@ -88,10 +88,12 @@ namespace meteor::runtime
 				// 0x40 ~ 0x4f
 				// 0x50 ~ 0x5f
 				// 0x60 ~ 0x6f
+				case operations::jmi      : return executeJMI      (fetchProgram(), register2);
 				case operations::jnz      : return executeJNZ      (fetchProgram(), register2);
 				case operations::jze      : return executeJZE      (fetchProgram(), register2);
 				case operations::jump     : return executeJUMP     (fetchProgram(), register2);
 				case operations::jpl      : return executeJPL      (fetchProgram(), register2);
+				case operations::jov      : return executeJOV      (fetchProgram(), register2);
 				// 0x70 ~ 0x7f
 				case operations::push     : return executePUSH     (fetchProgram(), register2);
 				case operations::pop      : return executePOP      (register1);
@@ -512,6 +514,19 @@ namespace meteor::runtime
 			return true;
 		}
 
+		// JMI adr, x
+		bool executeJMI(Word adr, Register x)
+		{
+			// SF == 1
+			if (signFlag())
+			{
+				// pc <- address
+				programCounter(adr + getRegister(x));
+			}
+
+			return true;
+		}
+
 		// JNZ adr, x
 		bool executeJNZ(Word adr, Register x)
 		{
@@ -552,6 +567,19 @@ namespace meteor::runtime
 		{
 			// ZF == 0 && SF == 0
 			if (!zeroFlag() && !signFlag())
+			{
+				// pc <- address
+				programCounter(adr + getRegister(x));
+			}
+
+			return true;
+		}
+
+		// JOV adr, x
+		bool executeJOV(Word adr, Register x)
+		{
+			// OF == 1
+			if (overflowFlag())
 			{
 				// pc <- address
 				programCounter(adr + getRegister(x));
