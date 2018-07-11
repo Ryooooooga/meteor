@@ -30,7 +30,6 @@
 
 #include "Memory.hpp"
 #include "../Operation.hpp"
-#include "../Register.hpp"
 #include "../SystemCall.hpp"
 
 namespace meteor::runtime
@@ -57,9 +56,8 @@ namespace meteor::runtime
 		bool step()
 		{
 			const auto instruction = fetchProgram();
-			const auto operation = (instruction >> 8) & 0xff;
-			const auto register1 = static_cast<Register>((instruction >> 4) & 0x07);
-			const auto register2 = static_cast<Register>((instruction >> 0) & 0x07);
+			const auto operation = operations::operationCode(instruction);
+			const auto [register1, register2] = operations::registers(instruction);
 
 			switch (operation)
 			{

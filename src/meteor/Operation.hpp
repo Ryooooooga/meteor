@@ -24,59 +24,71 @@
 
 #pragma once
 
-#include "Type.hpp"
+#include "Register.hpp"
 
 namespace meteor
 {
 	namespace operations
 	{
-		// 0x00 ~ 0x0f
-		constexpr Word nop      = 0x00;
-		// 0x10 ~ 0x1f
-		constexpr Word ld_adr   = 0x10;
-		constexpr Word st       = 0x11;
-		constexpr Word lad      = 0x12;
-		constexpr Word ld_r     = 0x14;
-		// 0x20 ~ 0x2f
-		constexpr Word adda_adr = 0x20;
-		constexpr Word suba_adr = 0x21;
-		constexpr Word addl_adr = 0x22;
-		constexpr Word subl_adr = 0x23;
-		constexpr Word adda_r   = 0x24;
-		constexpr Word suba_r   = 0x25;
-		constexpr Word addl_r   = 0x26;
-		constexpr Word subl_r   = 0x27;
-		// 0x30 ~ 0x3f
-		constexpr Word and_adr  = 0x30;
-		constexpr Word or_adr   = 0x31;
-		constexpr Word xor_adr  = 0x32;
-		constexpr Word and_r    = 0x34;
-		constexpr Word or_r     = 0x35;
-		constexpr Word xor_r    = 0x36;
-		// 0x40 ~ 0x4f
-		constexpr Word cpa_adr  = 0x40;
-		constexpr Word cpl_adr  = 0x41;
-		constexpr Word cpa_r    = 0x44;
-		constexpr Word cpl_r    = 0x45;
-		// 0x50 ~ 0x5f
-		constexpr Word sla_adr  = 0x50;
-		constexpr Word sra_adr  = 0x51;
-		constexpr Word sll_adr  = 0x52;
-		constexpr Word srl_adr  = 0x53;
-		// 0x60 ~ 0x6f
-		constexpr Word jmi      = 0x61;
-		constexpr Word jnz      = 0x62;
-		constexpr Word jze      = 0x63;
-		constexpr Word jump     = 0x64;
-		constexpr Word jpl      = 0x65;
-		constexpr Word jov      = 0x66;
-		// 0x70 ~ 0x7f
-		constexpr Word push     = 0x70;
-		constexpr Word pop      = 0x71;
-		// 0x80 ~ 0x8f
-		constexpr Word call     = 0x80;
-		constexpr Word ret      = 0x81;
-		// 0xf0 ~ 0xff
-		constexpr Word svc      = 0xf0;
+		// 0x0000 ~ 0x0f00
+		constexpr Word nop      = 0x0000;
+		// 0x1000 ~ 0x1f00
+		constexpr Word ld_adr   = 0x1000;
+		constexpr Word st       = 0x1100;
+		constexpr Word lad      = 0x1200;
+		constexpr Word ld_r     = 0x1400;
+		// 0x2000 ~ 0x2f00
+		constexpr Word adda_adr = 0x2000;
+		constexpr Word suba_adr = 0x2100;
+		constexpr Word addl_adr = 0x2200;
+		constexpr Word subl_adr = 0x2300;
+		constexpr Word adda_r   = 0x2400;
+		constexpr Word suba_r   = 0x2500;
+		constexpr Word addl_r   = 0x2600;
+		constexpr Word subl_r   = 0x2700;
+		// 0x3000 ~ 0x3f00
+		constexpr Word and_adr  = 0x3000;
+		constexpr Word or_adr   = 0x3100;
+		constexpr Word xor_adr  = 0x3200;
+		constexpr Word and_r    = 0x3400;
+		constexpr Word or_r     = 0x3500;
+		constexpr Word xor_r    = 0x3600;
+		// 0x4000 ~ 0x4f00
+		constexpr Word cpa_adr  = 0x4000;
+		constexpr Word cpl_adr  = 0x4100;
+		constexpr Word cpa_r    = 0x4400;
+		constexpr Word cpl_r    = 0x4500;
+		// 0x5000 ~ 0x5f00
+		constexpr Word sla_adr  = 0x5000;
+		constexpr Word sra_adr  = 0x5100;
+		constexpr Word sll_adr  = 0x5200;
+		constexpr Word srl_adr  = 0x5300;
+		// 0x6000 ~ 0x6f00
+		constexpr Word jmi      = 0x6100;
+		constexpr Word jnz      = 0x6200;
+		constexpr Word jze      = 0x6300;
+		constexpr Word jump     = 0x6400;
+		constexpr Word jpl      = 0x6500;
+		constexpr Word jov      = 0x6600;
+		// 0x7000 ~ 0x7f00
+		constexpr Word push     = 0x7000;
+		constexpr Word pop      = 0x7100;
+		// 0x8000 ~ 0x8f00
+		constexpr Word call     = 0x8000;
+		constexpr Word ret      = 0x8100;
+		// 0xf000 ~ 0xff00
+		constexpr Word svc      = 0xf000;
+
+		[[nodiscard]]
+		constexpr Word operationCode(Word code) noexcept
+		{
+			return code & 0xff00;
+		}
+
+		[[nodiscard]]
+		constexpr std::pair<Register, Register> registers(Word code) noexcept
+		{
+			return { static_cast<Register>((code >> 4) & 0x07), static_cast<Register>((code >> 0) & 0x07) };
+		}
 	}
 }
