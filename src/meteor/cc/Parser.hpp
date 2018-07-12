@@ -184,19 +184,10 @@ namespace meteor::cc
 
 		std::unique_ptr<DeclarationNode> parseVariableDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name)
 		{
-			std::unique_ptr<ExpressionNode> initializer;
-
-			// '='
-			if (consumeTokenIf(TokenKind::assign))
-			{
-				// expression
-				initializer = parseExpression();
-			}
-
 			// ';'
 			matchToken(TokenKind::semicolon);
 
-			return m_sema.actOnVariableDeclaration(name, std::move(type), std::move(initializer));
+			return m_sema.actOnVariableDeclaration(name, std::move(type));
 		}
 
 		// statement:

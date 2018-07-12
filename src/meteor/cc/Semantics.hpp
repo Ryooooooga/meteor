@@ -102,9 +102,9 @@ namespace meteor::cc
 
 		// variable-declaration
 		[[nodiscard]]
-		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
+		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type)
 		{
-			auto node = std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), std::move(initializer));
+			auto node = std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type));
 
 			// Register to the scope.
 			if (!m_scope->tryRegister(node->name(), *node))

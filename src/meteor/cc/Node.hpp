@@ -311,13 +311,12 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
+		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type)
 			: DeclarationNode(line, typeInfo), m_name(std::move(name))
 		{
 			assert(type);
 
 			addChild(std::move(type));
-			addChild(std::move(initializer));
 		}
 
 		[[nodiscard]]
@@ -330,12 +329,6 @@ namespace meteor::cc
 		TypeNode& type() const noexcept
 		{
 			return static_cast<TypeNode&>(*children()[0]);
-		}
-
-		[[nodiscard]]
-		ExpressionNode* initializer() const noexcept
-		{
-			return static_cast<ExpressionNode*>(children()[1].get());
 		}
 
 		void accept(IVisitor& visitor) override
