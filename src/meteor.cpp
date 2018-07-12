@@ -22,7 +22,7 @@
  * SOFTWARE.
 ================================================================================*/
 
-#include "meteor/runtime/Processor.hpp"
+#include "meteor/cc/Lexer.hpp"
 
 #include <iostream>
 
@@ -30,31 +30,18 @@ int main()
 {
 	try
 	{
-		const auto program = std::vector<meteor::Word>
+		constexpr char source[] = u8R"(
+			42;
+		)";
+
+		auto lexer = meteor::cc::Lexer { "test.c", source };
+
+		while (true)
 		{
-			0x1210, 0x8005, //     LAD  GR1, #0005, GR0
-			0x5010, 0x0003, //     SLA  GR1, #0003, GR0
-			0x5110, 0x0003, //     SRA  GR1, #0003, GR0
-			0xf000, 0x0001, //     SVC  #0001, GR0
-		};
-
-		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
-		const auto processor = std::make_unique<meteor::runtime::Processor>(memory);
-
-		std::size_t steps = 0;
-
-		while (steps++ < 100 && processor->step())
-		{
-			processor->memory()->dump(std::cout, 0x0000, 0x0020);
-			processor->memory()->dump(std::cout, 0xfff0, 0x10000);
-			processor->dumpRegisters(std::cout);
+			const auto token = lexer.read();
+			std::cout << boost::format(u8"%1% %2% `%3%' %4% `%5%'") % token->line() % token->kind() % token->text() % token->integer() % token->string() << std::endl;
+			if (token->kind() == meteor::cc::TokenKind::endOfFile) break;
 		}
-
-		processor->memory()->dump(std::cout, 0x0000, 0x0020);
-		processor->memory()->dump(std::cout, 0xfff0, 0x10000);
-		processor->dumpRegisters(std::cout);
-
-		std::cout << "steps: " << steps << std::endl;
 	}
 	catch (const std::exception& e)
 	{
