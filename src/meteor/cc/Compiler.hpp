@@ -51,6 +51,11 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::vector<Word> compile(RootNode& node)
 		{
+			// XOR GR0, GR0
+			add_XOR(Register::general0, Register::general0);
+			// LAD GR7, ?
+			auto& framePointerPos = add_LAD(framePointer);
+
 			// root
 			visit(node);
 
@@ -59,10 +64,15 @@ namespace meteor::cc
 			// SVC 1
 			add_SVC(1);
 
+			// Set initial frame pointer.
+			framePointerPos = position();
+
 			return m_program;
 		}
 
 	private:
+		constexpr static Register framePointer = Register::general7;
+
 		// root:
 		//     statement*
 		void visit(RootNode& node)
@@ -155,6 +165,14 @@ namespace meteor::cc
 		{
 			addWord(operations::instruction(operations::lad, r, x));
 			addWord(adr);
+		}
+
+		// LAD r, ?, x
+		[[nodiscard]]
+		Word& add_LAD(Register r, Register x = Register::general0)
+		{
+			add_LAD(r, 0xffff, x);
+			return m_program.back();
 		}
 
 		// OR r1, r2
