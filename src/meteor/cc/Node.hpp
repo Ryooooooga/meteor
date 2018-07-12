@@ -41,6 +41,7 @@ namespace meteor::cc
 	class EmptyStatementNode;
 	class IfStatementNode;
 	class ExpressionStatementNode;
+	class ParenExpressionNode;
 	class IntegerExpressionNode;
 
 	class IVisitor
@@ -52,6 +53,7 @@ namespace meteor::cc
 		virtual void visit(EmptyStatementNode& node) =0;
 		virtual void visit(IfStatementNode& node) =0;
 		virtual void visit(ExpressionStatementNode& node) =0;
+		virtual void visit(ParenExpressionNode& node) =0;
 		virtual void visit(IntegerExpressionNode& node) =0;
 	};
 
@@ -223,6 +225,32 @@ namespace meteor::cc
 		}
 	};
 
+	// paren-expression:
+	//     '(' expression ')'
+	class ParenExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit ParenExpressionNode(std::size_t line, std::unique_ptr<ExpressionNode>&& expression)
+			: ExpressionNode(line)
+		{
+			assert(expression);
+
+			addChild(std::move(expression));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& expression() noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// integer-expression:
 	//     integer-literal
 	class IntegerExpressionNode
@@ -317,6 +345,12 @@ namespace meteor::cc
 		void visit(ExpressionStatementNode& node)
 		{
 			print(u8"ExpressionStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(ParenExpressionNode& node)
+		{
+			print(u8"ParenExpressionNode");
 			visitChildren(node);
 		}
 

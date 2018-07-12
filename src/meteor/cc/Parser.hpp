@@ -203,11 +203,16 @@ namespace meteor::cc
 		}
 
 		// primary-expression:
+		//     paren-expression
 		//     integer-expression
 		std::unique_ptr<ExpressionNode> parsePrimaryExpression()
 		{
 			switch (peekToken()->kind())
 			{
+				case TokenKind::leftParen:
+					// paren-expression
+					return parseParenExpression();
+
 				case TokenKind::integerLiteral:
 					// integer-expression
 					return parseIntegerExpression();
@@ -216,6 +221,22 @@ namespace meteor::cc
 					// error
 					reportError(peekToken()->line(), boost::format(u8"unexpected token `%1%', expected expression.") % peekToken()->text());
 			}
+		}
+
+		// paren-expression:
+		//     '(' expression ')'
+		std::unique_ptr<ExpressionNode> parseParenExpression()
+		{
+			// '('
+			const auto token = matchToken(TokenKind::leftParen);
+
+			// expression
+			auto expression = parseExpression();
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return std::make_unique<ParenExpressionNode>(token->line(), std::move(expression));
 		}
 
 		// integer-expression:

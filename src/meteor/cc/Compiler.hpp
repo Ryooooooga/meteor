@@ -128,6 +128,14 @@ namespace meteor::cc
 			node.expression().accept(*this);
 		}
 
+		// paren-expression:
+		//     '(' expression ')'
+		void visit(ParenExpressionNode& node)
+		{
+			// expression
+			node.expression().accept(*this);
+		}
+
 		// integer-expression:
 		//     integer-literal
 		void visit(IntegerExpressionNode& node)
