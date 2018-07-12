@@ -121,7 +121,7 @@ namespace meteor::cc
 
 		// if-statement
 		[[nodiscard]]
-		std::unique_ptr<StatementNode> actOnIfStatementEnded(const std::shared_ptr<Token>& token, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& then, std::unique_ptr<StatementNode>&& otherwise)
+		std::unique_ptr<StatementNode> actOnIfStatement(const std::shared_ptr<Token>& token, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& then, std::unique_ptr<StatementNode>&& otherwise)
 		{
 			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
 		}

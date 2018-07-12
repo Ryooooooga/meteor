@@ -260,8 +260,8 @@ namespace meteor::cc
 		}
 
 		// if-statement:
-		//     'if' '(' expression ')' statement
-		//     'if' '(' expression ')' statement 'else' statement
+		//     'if' '(' expression ')' compound-statement
+		//     'if' '(' expression ')' compound-statement 'else' compound-statement
 		std::unique_ptr<StatementNode> parseIfStatement()
 		{
 			// 'if'
@@ -276,19 +276,19 @@ namespace meteor::cc
 			// ')'
 			matchToken(TokenKind::rightParen);
 
-			// statement
-			auto then = parseStatement();
+			// compound-statement
+			auto then = parseCompoundStatement();
 
 			// 'else'
 			if (!consumeTokenIf(TokenKind::keyword_else))
 			{
-				return m_sema.actOnIfStatementEnded(token, std::move(condition), std::move(then), nullptr);
+				return m_sema.actOnIfStatement(token, std::move(condition), std::move(then), nullptr);
 			}
 
-			// statement
-			auto otherwise = parseStatement();
+			// compound-statement
+			auto otherwise = parseCompoundStatement();
 
-			return m_sema.actOnIfStatementEnded(token, std::move(condition), std::move(then), std::move(otherwise));
+			return m_sema.actOnIfStatement(token, std::move(condition), std::move(then), std::move(otherwise));
 		}
 
 		// expression-statement:
