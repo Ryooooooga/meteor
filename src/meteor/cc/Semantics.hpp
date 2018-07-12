@@ -34,6 +34,7 @@ namespace meteor::cc
 	public:
 		explicit Semantics()
 			: m_name()
+			, m_scope()
 			, m_intTypeInfo(std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, u8"int"))
 		{
 		}
@@ -52,8 +53,16 @@ namespace meteor::cc
 		std::unique_ptr<RootNode> actOnRootBegan(std::string_view name)
 		{
 			m_name = name;
+			m_scope = std::make_shared<Scope>(m_scope);
 
-			return std::make_unique<RootNode>(m_name);
+			return std::make_unique<RootNode>(m_name, m_scope);
+		}
+
+		void actOnRootEnded()
+		{
+			assert(m_scope);
+
+			m_scope = m_scope->parentScope();
 		}
 
 		// function-declaration
@@ -130,6 +139,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+		std::shared_ptr<Scope> m_scope;
 
 		std::shared_ptr<ITypeInfo> m_intTypeInfo;
 	};

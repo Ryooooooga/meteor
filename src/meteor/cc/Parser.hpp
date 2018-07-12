@@ -115,6 +115,8 @@ namespace meteor::cc
 				node->addChild(parseExternalDeclaration());
 			}
 
+			m_sema.actOnRootEnded();
+
 			return node;
 		}
 

@@ -190,10 +190,12 @@ namespace meteor::cc
 		: public Node
 	{
 	public:
-		explicit RootNode(std::string name)
+		explicit RootNode(std::string name, const std::shared_ptr<Scope>& scope)
 			: Node(0)
 			, m_name(std::move(name))
+			, m_scope(scope)
 		{
+			assert(m_scope);
 		}
 
 		[[nodiscard]]
@@ -214,6 +216,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// function-declaration:
