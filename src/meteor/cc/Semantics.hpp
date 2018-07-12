@@ -70,8 +70,14 @@ namespace meteor::cc
 		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType)
 		{
 			auto typeInfo = std::make_shared<FunctionTypeInfo>(returnType->typeInfo());
+			auto node = std::make_unique<FunctionDeclarationNode>(name->line(), typeInfo, std::string {name->text()}, std::move(returnType));
 
-			return std::make_unique<FunctionDeclarationNode>(name->line(), typeInfo, std::string {name->text()}, std::move(returnType));
+			if (!m_scope->tryRegister(node->name(), *node) && m_scope->find(node->name())->typeInfo()->name() != node->typeInfo()->name())
+			{
+				reportError(node->line(), boost::format(u8"`%1%' redeclared as different type.") % node->name());
+			}
+
+			return node;
 		}
 
 		// function-definition
