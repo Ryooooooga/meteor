@@ -125,10 +125,23 @@ namespace meteor::cc
 		: public StatementNode
 	{
 	public:
-		using StatementNode::StatementNode;
+		explicit DeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo)
+			: StatementNode(line), m_typeInfo(typeInfo)
+		{
+			assert(m_typeInfo);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
 
 		[[nodiscard]]
 		virtual std::string_view name() const noexcept =0;
+
+	private:
+		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 
 	class ExpressionNode
@@ -209,8 +222,8 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit FunctionDeclarationNode(std::size_t line, std::string name, std::unique_ptr<TypeNode>&& type)
-			: DeclarationNode(line), m_name(std::move(name))
+		explicit FunctionDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type)
+			: DeclarationNode(line, typeInfo), m_name(std::move(name))
 		{
 			assert(type);
 
@@ -245,7 +258,7 @@ namespace meteor::cc
 	{
 	public:
 		explicit FunctionDefinitionNode(std::size_t line, std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
-			: DeclarationNode(line)
+			: DeclarationNode(line, declaration->typeInfo())
 		{
 			assert(declaration);
 			assert(body);
@@ -291,8 +304,8 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit VariableDeclarationNode(std::size_t line, std::string name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
-			: DeclarationNode(line), m_name(std::move(name))
+		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
+			: DeclarationNode(line, typeInfo), m_name(std::move(name))
 		{
 			assert(type);
 
@@ -551,19 +564,19 @@ namespace meteor::cc
 
 		void visit(FunctionDeclarationNode& node)
 		{
-			print(u8"FunctionDeclarationNode %1%", node.name());
+			print(u8"FunctionDeclarationNode <%1%> %2%", node.typeInfo()->name(), node.name());
 			visitChildren(node);
 		}
 
 		void visit(FunctionDefinitionNode& node)
 		{
-			print(u8"FunctionDefinitionNode %1%", node.name());
+			print(u8"FunctionDefinitionNode <%1%> %2%", node.typeInfo()->name(), node.name());
 			visitChildren(node);
 		}
 
 		void visit(VariableDeclarationNode& node)
 		{
-			print(u8"VariableDeclarationNode %1%", node.name());
+			print(u8"VariableDeclarationNode <%1%> %2%", node.typeInfo()->name(), node.name());
 			visitChildren(node);
 		}
 

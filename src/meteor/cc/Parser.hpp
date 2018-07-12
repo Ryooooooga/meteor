@@ -144,13 +144,13 @@ namespace meteor::cc
 		// function-declaration:
 		//     type identifier parameter-list ';'
 		//     type identifier parameter-list compound-statement
-		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name)
+		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& returnType, const std::shared_ptr<Token>& name)
 		{
 			// TODO: parameter-list
 			matchToken(TokenKind::leftParen);
 			matchToken(TokenKind::rightParen);
 
-			auto declaration = std::make_unique<FunctionDeclarationNode>(name->line(), std::string {name->text()}, std::move(type));
+			auto declaration = m_sema.actOnFunctionDeclaration(name, std::move(returnType));
 
 			// ';'?
 			if (consumeTokenIf(TokenKind::semicolon))
@@ -192,7 +192,7 @@ namespace meteor::cc
 			// ';'
 			matchToken(TokenKind::semicolon);
 
-			return std::make_unique<VariableDeclarationNode>(name->line(), std::string {name->text()}, std::move(type), std::move(initializer));
+			return m_sema.actOnVariableDeclaration(name, std::move(type), std::move(initializer));
 		}
 
 		// statement:

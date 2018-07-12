@@ -24,11 +24,17 @@
 
 #pragma once
 
+#include <string>
+#include <string_view>
+
+#include <boost/format.hpp>
+
 namespace meteor::cc
 {
 	enum class TypeCategory
 	{
 		integer,
+		function,
 	};
 
 	class ITypeInfo
@@ -73,6 +79,34 @@ namespace meteor::cc
 
 	private:
 		TypeCategory m_category;
+		std::string m_name;
+	};
+
+	class FunctionTypeInfo
+		: public ITypeInfo
+	{
+	public:
+		explicit FunctionTypeInfo(const std::shared_ptr<ITypeInfo>& returnType)
+			: m_name()
+		{
+			assert(returnType);
+
+			m_name = (boost::format(u8"%1%()") % returnType->name()).str();
+		}
+
+		[[nodiscard]]
+		TypeCategory category() const noexcept override
+		{
+			return TypeCategory::function;
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept override
+		{
+			return m_name;
+		}
+
+	private:
 		std::string m_name;
 	};
 }

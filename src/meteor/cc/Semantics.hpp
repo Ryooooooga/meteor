@@ -47,6 +47,22 @@ namespace meteor::cc
 
 		~Semantics() =default;
 
+		// function-declaration
+		[[nodiscard]]
+		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType)
+		{
+			auto typeInfo = std::make_shared<FunctionTypeInfo>(returnType->typeInfo());
+
+			return std::make_unique<FunctionDeclarationNode>(name->line(), typeInfo, std::string {name->text()}, std::move(returnType));
+		}
+
+		// variable-declaration
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
+		{
+			return std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), std::move(initializer));
+		}
+
 		// paren-expression
 		[[nodiscard]]
 		std::unique_ptr<ExpressionNode> actOnParenExpression(const std::shared_ptr<Token>& token, std::unique_ptr<ExpressionNode>&& expression)
