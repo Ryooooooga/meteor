@@ -160,10 +160,12 @@ namespace meteor::cc
 				return declaration;
 			}
 
+			m_sema.actOnFunctionBegan(*declaration);
+
 			// compound-statement
 			auto body = parseCompoundStatement();
 
-			return m_sema.actOnFunctionBodyEnded(std::move(declaration), std::move(body));
+			return m_sema.actOnFunctionEnded(std::move(declaration), std::move(body));
 		}
 
 		// variable-declaration:

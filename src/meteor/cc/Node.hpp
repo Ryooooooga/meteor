@@ -260,11 +260,12 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit FunctionDefinitionNode(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
-			: DeclarationNode(declaration->line(), declaration->typeInfo())
+		explicit FunctionDefinitionNode(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body, const std::shared_ptr<Scope>& scope)
+			: DeclarationNode(declaration->line(), declaration->typeInfo()), m_scope(scope)
 		{
 			assert(declaration);
 			assert(body);
+			assert(m_scope);
 
 			addChild(std::move(declaration));
 			addChild(std::move(body));
@@ -298,6 +299,9 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
+
+	private:
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// variable-declaration:

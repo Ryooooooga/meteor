@@ -63,6 +63,8 @@ namespace meteor::cc
 			assert(m_scope);
 
 			m_scope = m_scope->parentScope();
+
+			assert(m_scope == nullptr);
 		}
 
 		// function-declaration
@@ -81,10 +83,22 @@ namespace meteor::cc
 		}
 
 		// function-definition
-		[[nodiscard]]
-		std::unique_ptr<DeclarationNode> actOnFunctionBodyEnded(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
+		void actOnFunctionBegan(FunctionDeclarationNode& node)
 		{
-			return std::make_unique<FunctionDefinitionNode>(std::move(declaration), std::move(body));
+			m_scope = std::make_shared<Scope>(m_scope);
+
+			// TODO: params
+			(void)node;
+		}
+
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> actOnFunctionEnded(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
+		{
+			auto node = std::make_unique<FunctionDefinitionNode>(std::move(declaration), std::move(body), m_scope);
+
+			m_scope = m_scope->parentScope();
+
+			return node;
 		}
 
 		// variable-declaration
