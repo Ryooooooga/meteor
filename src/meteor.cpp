@@ -22,6 +22,7 @@
  * SOFTWARE.
 ================================================================================*/
 
+#include "meteor/cc/Compiler.hpp"
 #include "meteor/cc/Parser.hpp"
 
 #include <iostream>
@@ -32,12 +33,22 @@ int main()
 	{
 		constexpr char source[] = u8R"(
 			42;
+			;
+			3;
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };
-		auto ast = parser.parse();
 
+		auto ast = parser.parse();
 		meteor::cc::Printer {std::cout}.print(*ast);
+
+		auto compiler = meteor::cc::Compiler {};
+		auto program = compiler.compile(*ast);
+
+		for (const auto word : program)
+		{
+			std::cout << boost::format(u8"%1$04X") % word << std::endl;
+		}
 	}
 	catch (const std::exception& e)
 	{

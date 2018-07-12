@@ -46,6 +46,8 @@ namespace meteor::cc
 	class IVisitor
 	{
 	public:
+		virtual ~IVisitor() =default;
+
 		virtual void visit(RootNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
 		virtual void visit(ExpressionStatementNode& node) =0;
