@@ -32,8 +32,8 @@ namespace meteor::cc
 	class Semantics
 	{
 	public:
-		explicit Semantics(std::string_view name)
-			: m_name(name)
+		explicit Semantics()
+			: m_name()
 			, m_intTypeInfo(std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, u8"int"))
 		{
 		}
@@ -47,6 +47,15 @@ namespace meteor::cc
 
 		~Semantics() =default;
 
+		// root
+		[[nodiscard]]
+		std::unique_ptr<RootNode> actOnRootBegan(std::string_view name)
+		{
+			m_name = name;
+
+			return std::make_unique<RootNode>(m_name);
+		}
+
 		// function-declaration
 		[[nodiscard]]
 		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType)
@@ -56,11 +65,46 @@ namespace meteor::cc
 			return std::make_unique<FunctionDeclarationNode>(name->line(), typeInfo, std::string {name->text()}, std::move(returnType));
 		}
 
+		// function-definition
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> actOnFunctionBodyEnded(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
+		{
+			return std::make_unique<FunctionDefinitionNode>(std::move(declaration), std::move(body));
+		}
+
 		// variable-declaration
 		[[nodiscard]]
 		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
 		{
 			return std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), std::move(initializer));
+		}
+
+		// empty-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> actOnEmptyStatement(const std::shared_ptr<Token>& token)
+		{
+			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		// compound-statement
+		[[nodiscard]]
+		std::unique_ptr<CompoundStatementNode> actOnCompoundStatementBegan(const std::shared_ptr<Token>& token)
+		{
+			return std::make_unique<CompoundStatementNode>(token->line());
+		}
+
+		// if-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> actOnIfStatementEnded(const std::shared_ptr<Token>& token, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& then, std::unique_ptr<StatementNode>&& otherwise)
+		{
+			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
+		}
+
+		// expression-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> actOnExpressionStatement(std::unique_ptr<ExpressionNode>&& expression)
+		{
+			return std::make_unique<ExpressionStatementNode>(expression->line(), std::move(expression));
 		}
 
 		// paren-expression
@@ -85,7 +129,7 @@ namespace meteor::cc
 		}
 
 	private:
-		std::string_view m_name;
+		std::string m_name;
 
 		std::shared_ptr<ITypeInfo> m_intTypeInfo;
 	};

@@ -34,7 +34,7 @@ namespace meteor::cc
 	public:
 		explicit Parser(std::string name, std::string code)
 			: m_stream(Lexer { std::move(name), std::move(code) })
-			, m_sema(m_stream.name())
+			, m_sema()
 		{
 		}
 
@@ -106,7 +106,7 @@ namespace meteor::cc
 		//     external-declaration*
 		std::unique_ptr<RootNode> parseRoot()
 		{
-			auto node = std::make_unique<RootNode>(std::string(name()));
+			auto node = m_sema.actOnRootBegan(name());
 
 			// external-declaration*
 			while (peekToken()->kind() != TokenKind::endOfFile)
@@ -161,7 +161,7 @@ namespace meteor::cc
 			// compound-statement
 			auto body = parseCompoundStatement();
 
-			return std::make_unique<FunctionDefinitionNode>(declaration->line(), std::move(declaration), std::move(body));
+			return m_sema.actOnFunctionBodyEnded(std::move(declaration), std::move(body));
 		}
 
 		// variable-declaration:
@@ -232,7 +232,7 @@ namespace meteor::cc
 			// ';'
 			const auto token = matchToken(TokenKind::semicolon);
 
-			return std::make_unique<EmptyStatementNode>(token->line());
+			return m_sema.actOnEmptyStatement(token);
 		}
 
 		// compound-statement:
@@ -240,9 +240,7 @@ namespace meteor::cc
 		std::unique_ptr<StatementNode> parseCompoundStatement()
 		{
 			// '{'
-			const auto token = matchToken(TokenKind::leftBrace);
-
-			auto node = std::make_unique<CompoundStatementNode>(token->line());
+			auto node = m_sema.actOnCompoundStatementBegan(matchToken(TokenKind::leftBrace));
 
 			// statement*
 			while (peekToken()->kind() != TokenKind::rightBrace)
@@ -280,13 +278,13 @@ namespace meteor::cc
 			// 'else'
 			if (!consumeTokenIf(TokenKind::keyword_else))
 			{
-				return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), nullptr);
+				return m_sema.actOnIfStatementEnded(token, std::move(condition), std::move(then), nullptr);
 			}
 
 			// statement
 			auto otherwise = parseStatement();
 
-			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
+			return m_sema.actOnIfStatementEnded(token, std::move(condition), std::move(then), std::move(otherwise));
 		}
 
 		// expression-statement:
@@ -299,7 +297,7 @@ namespace meteor::cc
 			// ';'
 			matchToken(TokenKind::semicolon);
 
-			return std::make_unique<ExpressionStatementNode>(expression->line(), std::move(expression));
+			return m_sema.actOnExpressionStatement(std::move(expression));
 		}
 
 		// expression:

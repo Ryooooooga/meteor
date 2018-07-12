@@ -257,8 +257,8 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit FunctionDefinitionNode(std::size_t line, std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
-			: DeclarationNode(line, declaration->typeInfo())
+		explicit FunctionDefinitionNode(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
+			: DeclarationNode(declaration->line(), declaration->typeInfo())
 		{
 			assert(declaration);
 			assert(body);
