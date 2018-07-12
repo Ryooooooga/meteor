@@ -36,6 +36,8 @@ int main()
 
 		auto parser = meteor::cc::Parser { "test.c", source };
 		auto ast = parser.parse();
+
+		meteor::cc::Printer {std::cout}.print(*ast);
 	}
 	catch (const std::exception& e)
 	{

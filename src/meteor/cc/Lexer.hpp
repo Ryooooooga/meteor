@@ -25,6 +25,7 @@
 #pragma once
 
 #include <memory>
+
 #include <boost/container/flat_map.hpp>
 #include <boost/format.hpp>
 

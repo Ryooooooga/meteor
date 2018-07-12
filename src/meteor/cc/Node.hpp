@@ -28,6 +28,8 @@
 #include <memory>
 #include <vector>
 
+#include <boost/format.hpp>
+
 #include "../Type.hpp"
 
 namespace meteor::cc
@@ -40,6 +42,15 @@ namespace meteor::cc
 	class EmptyStatementNode;
 	class ExpressionStatementNode;
 	class IntegerExpressionNode;
+
+	class IVisitor
+	{
+	public:
+		virtual void visit(RootNode& node) =0;
+		virtual void visit(EmptyStatementNode& node) =0;
+		virtual void visit(ExpressionStatementNode& node) =0;
+		virtual void visit(IntegerExpressionNode& node) =0;
+	};
 
 	class Node
 	{
@@ -71,6 +82,8 @@ namespace meteor::cc
 		{
 			return m_children;
 		}
+
+		virtual void accept(IVisitor& visitor) =0;
 
 	protected:
 		void addChild(std::unique_ptr<Node>&& node)
@@ -118,6 +131,11 @@ namespace meteor::cc
 
 		using Node::addChild;
 
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
 	private:
 		std::string m_name;
 	};
@@ -129,6 +147,11 @@ namespace meteor::cc
 	{
 	public:
 		using StatementNode::StatementNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
 	};
 
 	// expression-statement:
@@ -147,6 +170,11 @@ namespace meteor::cc
 		ExpressionNode& expression() noexcept
 		{
 			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
 		}
 	};
 
@@ -168,7 +196,86 @@ namespace meteor::cc
 			return m_value;
 		}
 
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
 	private:
 		Word m_value;
+	};
+
+	class Printer
+		: private IVisitor
+	{
+	public:
+		explicit Printer(std::ostream& stream)
+			: Printer(stream, 0) {}
+
+		// Uncopyable, unmovable.
+		Printer(const Printer&) =delete;
+		Printer(Printer&&) =delete;
+
+		Printer& operator=(const Printer&) =delete;
+		Printer& operator=(Printer&&) =delete;
+
+		~Printer() =default;
+
+		void print(Node& node)
+		{
+			node.accept(*this);
+		}
+
+	private:
+		explicit Printer(std::ostream& stream, std::size_t depth)
+			: m_stream(stream), m_depth(depth) {}
+
+		template <typename... Args>
+		void print(const std::string& format, Args&&... args)
+		{
+			for (std::size_t i = 0; i < m_depth; i++)
+			{
+				m_stream << u8"    ";
+			}
+
+			m_stream << (boost::format(format) % ... % std::forward<Args>(args)) << std::endl;
+		}
+
+		void visitChildren(Node& node)
+		{
+			Printer printer {m_stream, m_depth + 1};
+
+			for (const auto& child : node.children())
+			{
+				child->accept(printer);
+			}
+		}
+
+		void visit(RootNode& node)
+		{
+			print(u8"RootNode %1%", node.name());
+			visitChildren(node);
+		}
+
+		void visit(EmptyStatementNode& node)
+		{
+			print(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(ExpressionStatementNode& node)
+		{
+			print(u8"ExpressionStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(IntegerExpressionNode& node)
+		{
+			print(u8"IntegerExpressionNode %1%", node.value());
+			visitChildren(node);
+		}
+
+		std::ostream& m_stream;
+		std::size_t m_depth;
 	};
 }
