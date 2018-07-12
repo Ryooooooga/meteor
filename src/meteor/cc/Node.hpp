@@ -30,6 +30,7 @@
 #include <boost/format.hpp>
 
 #include "../Type.hpp"
+#include "TypeInfo.hpp"
 
 namespace meteor::cc
 {
@@ -141,7 +142,20 @@ namespace meteor::cc
 		: public Node
 	{
 	public:
-		using Node::Node;
+		explicit TypeNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo)
+			: Node(line), m_typeInfo(typeInfo)
+		{
+			assert(m_typeInfo);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
+
+	private:
+		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 
 	// root:
@@ -578,7 +592,7 @@ namespace meteor::cc
 
 		void visit(IntegerTypeNode& node)
 		{
-			print(u8"IntegerTypeNode");
+			print(u8"IntegerTypeNode <%1%>", node.typeInfo()->name());
 			visitChildren(node);
 		}
 

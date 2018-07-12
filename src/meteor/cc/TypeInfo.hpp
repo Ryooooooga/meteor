@@ -24,39 +24,55 @@
 
 #pragma once
 
-#include "Node.hpp"
-#include "Token.hpp"
-
 namespace meteor::cc
 {
-	class Semantics
+	enum class TypeCategory
+	{
+		integer,
+	};
+
+	class ITypeInfo
 	{
 	public:
-		explicit Semantics(std::string_view name)
-			: m_name(name)
-			, m_intTypeInfo(std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, u8"int"))
-		{
-		}
+		ITypeInfo() =default;
 
 		// Uncopyable, unmovable.
-		Semantics(const Semantics&) =delete;
-		Semantics(Semantics&&) =delete;
+		ITypeInfo(const ITypeInfo&) =delete;
+		ITypeInfo(ITypeInfo&&) =delete;
 
-		Semantics& operator=(const Semantics&) =delete;
-		Semantics& operator=(Semantics&&) =delete;
+		ITypeInfo& operator=(const ITypeInfo&) =delete;
+		ITypeInfo& operator=(ITypeInfo&&) =delete;
 
-		~Semantics() =default;
+		virtual ~ITypeInfo() =default;
 
-		// integer-type
 		[[nodiscard]]
-		std::unique_ptr<TypeNode> actOnIntegerType(const std::shared_ptr<Token>& token)
+		virtual TypeCategory category() const noexcept =0;
+
+		[[nodiscard]]
+		virtual std::string_view name() const noexcept =0;
+	};
+
+	class PrimitiveTypeInfo
+		: public ITypeInfo
+	{
+	public:
+		explicit PrimitiveTypeInfo(TypeCategory category, std::string name)
+			: m_category(category), m_name(std::move(name)) {}
+
+		[[nodiscard]]
+		TypeCategory category() const noexcept override
 		{
-			return std::make_unique<IntegerTypeNode>(token->line(), m_intTypeInfo);
+			return m_category;
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept override
+		{
+			return m_name;
 		}
 
 	private:
-		std::string_view m_name;
-
-		std::shared_ptr<ITypeInfo> m_intTypeInfo;
+		TypeCategory m_category;
+		std::string m_name;
 	};
 }

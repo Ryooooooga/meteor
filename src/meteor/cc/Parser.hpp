@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "Node.hpp"
 #include "Semantics.hpp"
 #include "TokenStream.hpp"
 
@@ -389,7 +388,7 @@ namespace meteor::cc
 			// 'int'
 			const auto token = matchToken(TokenKind::keyword_int);
 
-			return std::make_unique<IntegerTypeNode>(token->line());
+			return m_sema.actOnIntegerType(token);
 		}
 
 		TokenStream m_stream;
