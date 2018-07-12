@@ -102,19 +102,63 @@ namespace meteor::cc
 		}
 
 		// root:
-		//     statement*
+		//     external-declaration*
 		std::unique_ptr<RootNode> parseRoot()
 		{
 			auto node = std::make_unique<RootNode>(std::string(name()));
 
-			// statement*
+			// external-declaration*
 			while (peekToken()->kind() != TokenKind::endOfFile)
 			{
-				// statement
-				node->addChild(parseStatement());
+				// external-declaration
+				node->addChild(parseExternalDeclaration());
 			}
 
 			return node;
+		}
+
+		// external-declaration:
+		//     function-declaration
+		//     variable-declaration
+		std::unique_ptr<DeclarationNode> parseExternalDeclaration()
+		{
+			// type
+			auto type = parseType();
+
+			// identifier
+			const auto name = matchToken(TokenKind::identifier);
+
+			if (peekToken()->kind() == TokenKind::leftParen)
+			{
+				// function-declaration
+				return parseFunctionDeclaration(std::move(type), name, true);
+			}
+			else
+			{
+				// variable-declaration
+				return parseVariableDeclaration(std::move(type), name);
+			}
+		}
+
+		// function-declaration:
+		//     type identifier parameter-list ';'
+		//     type identifier parameter-list compound-statement
+		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name, bool acceptBody)
+		{
+			(void)type;
+			(void)name;
+			(void)acceptBody;
+			reportError(0, "not implemented");
+		}
+
+		// variable-declaration:
+		//     type identifier ';'
+		//     type identifier '=' expression ';'
+		std::unique_ptr<DeclarationNode> parseVariableDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name)
+		{
+			(void)type;
+			(void)name;
+			reportError(1, "not implemented");
 		}
 
 		// statement:
@@ -247,6 +291,40 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::integerLiteral);
 
 			return std::make_unique<IntegerExpressionNode>(token->line(), token->integer());
+		}
+
+		// type:
+		//     primary-type
+		std::unique_ptr<TypeNode> parseType()
+		{
+			// primary-type
+			return parsePrimaryType();
+		}
+
+		// primary-type:
+		//     integer-type
+		std::unique_ptr<TypeNode> parsePrimaryType()
+		{
+			switch (peekToken()->kind())
+			{
+				case TokenKind::keyword_int:
+					// integer-type
+					return parseIntegerType();
+
+				default:
+					// error
+					reportError(peekToken()->line(), boost::format(u8"unexpected token `%1%', expected type.") % peekToken()->text());
+			}
+		}
+
+		// integer-type:
+		//     'int'
+		std::unique_ptr<TypeNode> parseIntegerType()
+		{
+			// 'int'
+			const auto token = matchToken(TokenKind::keyword_int);
+
+			return std::make_unique<IntegerTypeNode>(token->line());
 		}
 
 		TokenStream m_stream;

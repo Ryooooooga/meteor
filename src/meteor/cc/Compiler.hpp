@@ -89,8 +89,6 @@ namespace meteor::cc
 		//     ';'
 		void visit([[maybe_unused]] EmptyStatementNode& node)
 		{
-			// NOP
-			add_NOP();
 		}
 
 		// if-statement:
@@ -152,6 +150,12 @@ namespace meteor::cc
 		{
 			// LAD GR1, x
 			add_LAD(Register::general1, node.value());
+		}
+
+		// integer-type:
+		//     'int'
+		void visit([[maybe_unused]] IntegerTypeNode& node)
+		{
 		}
 
 		// NOP

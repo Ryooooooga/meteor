@@ -35,7 +35,9 @@ namespace meteor::cc
 {
 	class Node;
 	class StatementNode;
+	class DeclarationNode;
 	class ExpressionNode;
+	class TypeNode;
 
 	class RootNode;
 	class EmptyStatementNode;
@@ -43,6 +45,7 @@ namespace meteor::cc
 	class ExpressionStatementNode;
 	class ParenExpressionNode;
 	class IntegerExpressionNode;
+	class IntegerTypeNode;
 
 	class IVisitor
 	{
@@ -55,6 +58,7 @@ namespace meteor::cc
 		virtual void visit(ExpressionStatementNode& node) =0;
 		virtual void visit(ParenExpressionNode& node) =0;
 		virtual void visit(IntegerExpressionNode& node) =0;
+		virtual void visit(IntegerTypeNode& node) =0;
 	};
 
 	class Node
@@ -108,7 +112,21 @@ namespace meteor::cc
 		using Node::Node;
 	};
 
+	class DeclarationNode
+		: public StatementNode
+	{
+	public:
+		using StatementNode::StatementNode;
+	};
+
 	class ExpressionNode
+		: public Node
+	{
+	public:
+		using Node::Node;
+	};
+
+	class TypeNode
 		: public Node
 	{
 	public:
@@ -132,7 +150,10 @@ namespace meteor::cc
 			return m_name;
 		}
 
-		using Node::addChild;
+		void addChild(std::unique_ptr<DeclarationNode>&& node)
+		{
+			Node::addChild(std::move(node));
+		}
 
 		void accept(IVisitor& visitor) override
 		{
@@ -278,6 +299,20 @@ namespace meteor::cc
 		Word m_value;
 	};
 
+	// integer-type:
+	//     'int'
+	class IntegerTypeNode
+		: public TypeNode
+	{
+	public:
+		using TypeNode::TypeNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	class Printer
 		: private IVisitor
 	{
@@ -357,6 +392,12 @@ namespace meteor::cc
 		void visit(IntegerExpressionNode& node)
 		{
 			print(u8"IntegerExpressionNode %1%", node.value());
+			visitChildren(node);
+		}
+
+		void visit(IntegerTypeNode& node)
+		{
+			print(u8"IntegerTypeNode");
 			visitChildren(node);
 		}
 

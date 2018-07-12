@@ -34,10 +34,9 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
-			if (1) (1);
-			else ;
-
-			if (0);
+			int main() {
+				42;
+			}
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };
