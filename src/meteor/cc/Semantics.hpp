@@ -47,6 +47,20 @@ namespace meteor::cc
 
 		~Semantics() =default;
 
+		// paren-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> actOnParenExpression(const std::shared_ptr<Token>& token, std::unique_ptr<ExpressionNode>&& expression)
+		{
+			return std::make_unique<ParenExpressionNode>(token->line(), expression->typeInfo(), std::move(expression));
+		}
+
+		// integer-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> actOnIntegerExpression(const std::shared_ptr<Token>& token)
+		{
+			return std::make_unique<IntegerExpressionNode>(token->line(), m_intTypeInfo, token->integer());
+		}
+
 		// integer-type
 		[[nodiscard]]
 		std::unique_ptr<TypeNode> actOnIntegerType(const std::shared_ptr<Token>& token)

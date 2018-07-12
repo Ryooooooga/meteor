@@ -135,7 +135,20 @@ namespace meteor::cc
 		: public Node
 	{
 	public:
-		using Node::Node;
+		explicit ExpressionNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo)
+			: Node(line), m_typeInfo(typeInfo)
+		{
+			assert(m_typeInfo);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
+
+	private:
+		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 
 	class TypeNode
@@ -423,8 +436,8 @@ namespace meteor::cc
 		: public ExpressionNode
 	{
 	public:
-		explicit ParenExpressionNode(std::size_t line, std::unique_ptr<ExpressionNode>&& expression)
-			: ExpressionNode(line)
+		explicit ParenExpressionNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::unique_ptr<ExpressionNode>&& expression)
+			: ExpressionNode(line, typeInfo)
 		{
 			assert(expression);
 
@@ -449,8 +462,8 @@ namespace meteor::cc
 		: public ExpressionNode
 	{
 	public:
-		explicit IntegerExpressionNode(std::size_t line, Word value)
-			: ExpressionNode(line)
+		explicit IntegerExpressionNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, Word value)
+			: ExpressionNode(line, typeInfo)
 			, m_value(value)
 		{
 		}
@@ -580,13 +593,13 @@ namespace meteor::cc
 
 		void visit(ParenExpressionNode& node)
 		{
-			print(u8"ParenExpressionNode");
+			print(u8"ParenExpressionNode <%1%>", node.typeInfo()->name());
 			visitChildren(node);
 		}
 
 		void visit(IntegerExpressionNode& node)
 		{
-			print(u8"IntegerExpressionNode %1%", node.value());
+			print(u8"IntegerExpressionNode <%1%> %2%", node.typeInfo()->name(), node.value());
 			visitChildren(node);
 		}
 

@@ -344,7 +344,7 @@ namespace meteor::cc
 			// ')'
 			matchToken(TokenKind::rightParen);
 
-			return std::make_unique<ParenExpressionNode>(token->line(), std::move(expression));
+			return m_sema.actOnParenExpression(token, std::move(expression));
 		}
 
 		// integer-expression:
@@ -354,7 +354,7 @@ namespace meteor::cc
 			// integer-literal
 			const auto token = matchToken(TokenKind::integerLiteral);
 
-			return std::make_unique<IntegerExpressionNode>(token->line(), token->integer());
+			return m_sema.actOnIntegerExpression(token);
 		}
 
 		// type:
