@@ -40,6 +40,8 @@ namespace meteor::cc
 	class TypeNode;
 
 	class RootNode;
+	class FunctionDeclarationNode;
+	class FunctionDefinitionNode;
 	class EmptyStatementNode;
 	class CompoundStatementNode;
 	class IfStatementNode;
@@ -54,6 +56,8 @@ namespace meteor::cc
 		virtual ~IVisitor() =default;
 
 		virtual void visit(RootNode& node) =0;
+		virtual void visit(FunctionDeclarationNode& node) =0;
+		virtual void visit(FunctionDefinitionNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
 		virtual void visit(CompoundStatementNode& node) =0;
 		virtual void visit(IfStatementNode& node) =0;
@@ -119,6 +123,9 @@ namespace meteor::cc
 	{
 	public:
 		using StatementNode::StatementNode;
+
+		[[nodiscard]]
+		virtual std::string_view name() const noexcept =0;
 	};
 
 	class ExpressionNode
@@ -135,7 +142,8 @@ namespace meteor::cc
 		using Node::Node;
 	};
 
-	// root
+	// root:
+	//     external-declaration
 	class RootNode
 		: public Node
 	{
@@ -164,6 +172,87 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+	};
+
+	// function-declaration:
+	//     type name parameter-list ';'
+	class FunctionDeclarationNode
+		: public DeclarationNode
+	{
+	public:
+		explicit FunctionDeclarationNode(std::size_t line, std::string name, std::unique_ptr<TypeNode>&& type)
+			: DeclarationNode(line), m_name(std::move(name))
+		{
+			assert(type);
+
+			addChild(std::move(type));
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept override
+		{
+			return m_name;
+		}
+
+		[[nodiscard]]
+		TypeNode& returnType() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
+	private:
+		std::string m_name;
+	};
+
+	// function-definition:
+	//     type name parameter-list compound-statement
+	class FunctionDefinitionNode
+		: public DeclarationNode
+	{
+	public:
+		explicit FunctionDefinitionNode(std::size_t line, std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body)
+			: DeclarationNode(line)
+		{
+			assert(declaration);
+			assert(body);
+
+			addChild(std::move(declaration));
+			addChild(std::move(body));
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept override
+		{
+			return declaration().name();
+		}
+
+		[[nodiscard]]
+		TypeNode& returnType() const noexcept
+		{
+			return declaration().returnType();
+		}
+
+		[[nodiscard]]
+		FunctionDeclarationNode& declaration() const noexcept
+		{
+			return static_cast<FunctionDeclarationNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		StatementNode& body() const noexcept
+		{
+			return static_cast<StatementNode&>(*children()[1]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
 	};
 
 	// empty-statement:
@@ -385,6 +474,18 @@ namespace meteor::cc
 		void visit(RootNode& node)
 		{
 			print(u8"RootNode %1%", node.name());
+			visitChildren(node);
+		}
+
+		void visit(FunctionDeclarationNode& node)
+		{
+			print(u8"FunctionDeclarationNode %1%", node.name());
+			visitChildren(node);
+		}
+
+		void visit(FunctionDefinitionNode& node)
+		{
+			print(u8"FunctionDefinitionNode %1%", node.name());
 			visitChildren(node);
 		}
 

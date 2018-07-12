@@ -85,6 +85,29 @@ namespace meteor::cc
 			}
 		}
 
+		// function-declaration:
+		//     type name parameter-list ';'
+		void visit(FunctionDeclarationNode& node)
+		{
+			// TODO:
+			(void)node;
+		}
+
+		// function-definition:
+		//     type name parameter-list compound-statement
+		void visit(FunctionDefinitionNode& node)
+		{
+			// function-declaration
+			node.declaration().accept(*this);
+
+			// TODO: prologue
+
+			// compound-statement
+			node.body().accept(*this);
+
+			// TODO: epilogue
+		}
+
 		// empty-statement:
 		//     ';'
 		void visit([[maybe_unused]] EmptyStatementNode& node)

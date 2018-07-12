@@ -131,7 +131,7 @@ namespace meteor::cc
 			if (peekToken()->kind() == TokenKind::leftParen)
 			{
 				// function-declaration
-				return parseFunctionDeclaration(std::move(type), name, true);
+				return parseFunctionDeclaration(std::move(type), name);
 			}
 			else
 			{
@@ -143,12 +143,24 @@ namespace meteor::cc
 		// function-declaration:
 		//     type identifier parameter-list ';'
 		//     type identifier parameter-list compound-statement
-		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name, bool acceptBody)
+		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name)
 		{
-			(void)type;
-			(void)name;
-			(void)acceptBody;
-			reportError(0, "not implemented");
+			// TODO: parameter-list
+			matchToken(TokenKind::leftParen);
+			matchToken(TokenKind::rightParen);
+
+			auto declaration = std::make_unique<FunctionDeclarationNode>(name->line(), std::string {name->text()}, std::move(type));
+
+			// ';'?
+			if (consumeTokenIf(TokenKind::semicolon))
+			{
+				return declaration;
+			}
+
+			// compound-statement
+			auto body = parseCompoundStatement();
+
+			return std::make_unique<FunctionDefinitionNode>(declaration->line(), std::move(declaration), std::move(body));
 		}
 
 		// variable-declaration:
