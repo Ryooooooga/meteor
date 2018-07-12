@@ -24,12 +24,12 @@
 
 #pragma once
 
-#include <memory>
 #include <vector>
 
 #include <boost/format.hpp>
 
 #include "../Type.hpp"
+#include "Scope.hpp"
 #include "TypeInfo.hpp"
 
 namespace meteor::cc
