@@ -82,17 +82,17 @@ namespace meteor::cc
 					return u8'0' <= c && c <= u8'9';
 				};
 
-				// // [A-Z_a-z]
-				// constexpr auto isIdentifierStart = [](char c) noexcept
-				// {
-				// 	return (u8'A' <= c && c <= u8'Z') || (u8'a' <= c && c <= u8'z') || (c == u8'_');
-				// };
+				// [A-Z_a-z]
+				constexpr auto isIdentifierStart = [](char c) noexcept
+				{
+					return (u8'A' <= c && c <= u8'Z') || (u8'a' <= c && c <= u8'z') || (c == u8'_');
+				};
 
-				// // [0-9A-Z_a-z]
-				// constexpr auto isIdentifierContinuation = [](char c) noexcept
-				// {
-				// 	return isIdentifierStart(c) || isDigit(c);
-				// };
+				// [0-9A-Z_a-z]
+				constexpr auto isIdentifierContinuation = [](char c) noexcept
+				{
+					return isIdentifierStart(c) || isDigit(c);
+				};
 
 				// --- ignored ---
 
@@ -160,6 +160,24 @@ namespace meteor::cc
 					}
 
 					reportError(boost::format(u8"too large integer literal `%1%'.") % text);
+				}
+
+				// identifier:
+				//     [A-Z_a-z][0-9A-Z_a-z]*
+				if (isIdentifierStart(peek(0)))
+				{
+					std::string text;
+
+					while (isIdentifierContinuation(peek(0)))
+					{
+						text += consume();
+					}
+
+					TokenKind kind = TokenKind::identifier;
+#define METEOR_CC_TOKEN_KEYWORD(name, _text) if (text == u8 ## _text) kind = TokenKind::name;
+#include "Token.def.hpp"
+
+					return formToken(kind, std::move(text));
 				}
 
 				// punctuator:

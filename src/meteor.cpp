@@ -25,6 +25,8 @@
 #include "meteor/cc/Compiler.hpp"
 #include "meteor/cc/Parser.hpp"
 
+#include "meteor/runtime/Processor.hpp"
+
 #include <iostream>
 
 int main()
@@ -32,9 +34,10 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
-			42;
-			;
-			3;
+			if (1) 1;
+			else ;
+
+			if (0);
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };
@@ -45,9 +48,18 @@ int main()
 		auto compiler = meteor::cc::Compiler {};
 		auto program = compiler.compile(*ast);
 
-		for (const auto word : program)
+		for (meteor::Word addr = 0; addr < program.size(); addr++)
 		{
-			std::cout << boost::format(u8"%1$04X") % word << std::endl;
+			std::cout << boost::format(u8"%1$04X: %2$04X") % addr % program[addr] << std::endl;
+		}
+
+		auto memory = std::make_shared<meteor::runtime::Memory>(program);
+		auto processor = meteor::runtime::Processor(memory);
+
+		std::size_t steps = 0;
+
+		while (steps++ < 100 && processor.step())
+		{
 		}
 	}
 	catch (const std::exception& e)

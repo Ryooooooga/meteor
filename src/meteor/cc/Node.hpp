@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include <cassert>
 #include <memory>
 #include <vector>
 
@@ -40,6 +39,7 @@ namespace meteor::cc
 
 	class RootNode;
 	class EmptyStatementNode;
+	class IfStatementNode;
 	class ExpressionStatementNode;
 	class IntegerExpressionNode;
 
@@ -50,6 +50,7 @@ namespace meteor::cc
 
 		virtual void visit(RootNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
+		virtual void visit(IfStatementNode& node) =0;
 		virtual void visit(ExpressionStatementNode& node) =0;
 		virtual void visit(IntegerExpressionNode& node) =0;
 	};
@@ -90,8 +91,6 @@ namespace meteor::cc
 	protected:
 		void addChild(std::unique_ptr<Node>&& node)
 		{
-			assert(node);
-
 			m_children.emplace_back(std::move(node));
 		}
 
@@ -156,6 +155,48 @@ namespace meteor::cc
 		}
 	};
 
+	// if-statement:
+	//     'if' '(' expression ')' statement
+	//     'if' '(' expression ')' statement 'else' statement
+	class IfStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit IfStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& then, std::unique_ptr<StatementNode>&& otherwise)
+			: StatementNode(line)
+		{
+			assert(condition);
+			assert(then);
+
+			addChild(std::move(condition));
+			addChild(std::move(then));
+			addChild(std::move(otherwise));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& condition() noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		StatementNode& then() noexcept
+		{
+			return static_cast<StatementNode&>(*children()[1]);
+		}
+
+		[[nodiscard]]
+		StatementNode* otherwise() noexcept
+		{
+			return static_cast<StatementNode*>(children()[2].get());
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// expression-statement:
 	//     expression ';'
 	class ExpressionStatementNode
@@ -165,6 +206,8 @@ namespace meteor::cc
 		explicit ExpressionStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& expression)
 			: StatementNode(line)
 		{
+			assert(expression);
+
 			addChild(std::move(expression));
 		}
 
@@ -249,7 +292,7 @@ namespace meteor::cc
 
 			for (const auto& child : node.children())
 			{
-				child->accept(printer);
+				if (child) child->accept(printer);
 			}
 		}
 
@@ -262,6 +305,12 @@ namespace meteor::cc
 		void visit(EmptyStatementNode& node)
 		{
 			print(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(IfStatementNode& node)
+		{
+			print(u8"IfStatementNode");
 			visitChildren(node);
 		}
 

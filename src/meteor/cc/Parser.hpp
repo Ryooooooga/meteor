@@ -119,6 +119,7 @@ namespace meteor::cc
 
 		// statement:
 		//     empty-statement
+		//     if-statement
 		//     expression-statement
 		std::unique_ptr<StatementNode> parseStatement()
 		{
@@ -127,6 +128,10 @@ namespace meteor::cc
 				case TokenKind::semicolon:
 					// empty-statement
 					return parseEmptyStatement();
+
+				case TokenKind::keyword_if:
+					// if-statement
+					return parseIfStatement();
 
 				default:
 					// expression-statement
@@ -142,6 +147,38 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::semicolon);
 
 			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		// if-statement:
+		//     'if' '(' expression ')' statement
+		//     'if' '(' expression ')' statement 'else' statement
+		std::unique_ptr<StatementNode> parseIfStatement()
+		{
+			// 'if'
+			const auto token = matchToken(TokenKind::keyword_if);
+
+			// '('
+			matchToken(TokenKind::leftParen);
+
+			// expression
+			auto condition = parseExpression();
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			// statement
+			auto then = parseStatement();
+
+			// 'else'
+			if (!consumeTokenIf(TokenKind::keyword_else))
+			{
+				return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), nullptr);
+			}
+
+			// statement
+			auto otherwise = parseStatement();
+
+			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
 		}
 
 		// expression-statement:
