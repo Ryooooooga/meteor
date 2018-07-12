@@ -363,7 +363,11 @@ namespace meteor::cc
 		: public StatementNode
 	{
 	public:
-		using StatementNode::StatementNode;
+		explicit CompoundStatementNode(std::size_t line, const std::shared_ptr<Scope>& scope)
+			: StatementNode(line), m_scope(scope)
+		{
+			assert(m_scope);
+		}
 
 		void addChild(std::unique_ptr<StatementNode>&& node)
 		{
@@ -376,6 +380,9 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
+
+	private:
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// if-statement:

@@ -254,6 +254,8 @@ namespace meteor::cc
 			// '}'
 			matchToken(TokenKind::rightBrace);
 
+			m_sema.actOnCompoundStatementEnded();
+
 			return node;
 		}
 

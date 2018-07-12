@@ -107,7 +107,16 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<CompoundStatementNode> actOnCompoundStatementBegan(const std::shared_ptr<Token>& token)
 		{
-			return std::make_unique<CompoundStatementNode>(token->line());
+			m_scope = std::make_shared<Scope>(m_scope);
+
+			return std::make_unique<CompoundStatementNode>(token->line(), m_scope);
+		}
+
+		void actOnCompoundStatementEnded()
+		{
+			assert(m_scope);
+
+			m_scope = m_scope->parentScope();
 		}
 
 		// if-statement
