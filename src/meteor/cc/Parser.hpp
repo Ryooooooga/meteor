@@ -25,6 +25,7 @@
 #pragma once
 
 #include "Node.hpp"
+#include "Semantics.hpp"
 #include "TokenStream.hpp"
 
 namespace meteor::cc
@@ -34,6 +35,7 @@ namespace meteor::cc
 	public:
 		explicit Parser(std::string name, std::string code)
 			: m_stream(Lexer { std::move(name), std::move(code) })
+			, m_sema(m_stream.name())
 		{
 		}
 
@@ -391,5 +393,6 @@ namespace meteor::cc
 		}
 
 		TokenStream m_stream;
+		Semantics m_sema;
 	};
 }
