@@ -51,14 +51,18 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::vector<Word> compile(RootNode& node)
 		{
+			// Clear GR0
 			// XOR GR0, GR0
 			add_XOR(Register::general0, Register::general0);
-			// LAD GR7, ?
+
+			// Load the initial address of frame pointer.
+			// LAD FP, ?
 			auto& framePointerPos = add_LAD(framePointer);
 
 			// root
 			visit(node);
 
+			// Exit with status `0`.
 			// XOR GR1, GR1
 			add_XOR(Register::general1, Register::general1);
 			// SVC 1
@@ -100,12 +104,11 @@ namespace meteor::cc
 			// function-declaration
 			node.declaration().accept(*this);
 
-			// TODO: prologue
-
 			// compound-statement
 			node.body().accept(*this);
 
-			// TODO: epilogue
+			// RET
+			add_RET();
 		}
 
 		// empty-statement:
@@ -135,6 +138,7 @@ namespace meteor::cc
 			// condition
 			node.condition().accept(*this);
 
+			// Jump to `.else` label if condition is `0`.
 			// OR  GR1, GR1
 			add_OR(Register::general1, Register::general1);
 			// JZE .else
@@ -215,6 +219,13 @@ namespace meteor::cc
 			return m_program.back();
 		}
 
+		// ADDL r, adr, x
+		void add_ADDL(Register r, Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::addl_adr, r, x));
+			addWord(adr);
+		}
+
 		// OR r1, r2
 		void add_OR(Register r1, Register r2)
 		{
@@ -258,9 +269,9 @@ namespace meteor::cc
 		}
 
 		// PUSH adr
-		void add_PUSH(Word adr)
+		void add_PUSH(Word adr, Register x = Register::general0)
 		{
-			addWord(operations::instruction(operations::push, Register::general0, Register::general0));
+			addWord(operations::instruction(operations::push, Register::general0, x));
 			addWord(adr);
 		}
 
@@ -268,6 +279,12 @@ namespace meteor::cc
 		void add_POP(Register r)
 		{
 			addWord(operations::instruction(operations::pop, r, Register::general0));
+		}
+
+		// RET
+		void add_RET()
+		{
+			addWord(operations::ret);
 		}
 
 		// SVC adr, x
