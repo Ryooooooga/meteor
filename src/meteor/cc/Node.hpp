@@ -125,23 +125,32 @@ namespace meteor::cc
 		: public StatementNode
 	{
 	public:
-		explicit DeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo)
-			: StatementNode(line), m_typeInfo(typeInfo)
+		explicit DeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol)
+			: StatementNode(line), m_symbol(symbol)
 		{
-			assert(m_typeInfo);
+			assert(m_symbol);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const noexcept
+		{
+			return m_symbol;
 		}
 
 		[[nodiscard]]
 		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
 		{
-			return m_typeInfo;
+			return m_symbol->typeInfo();
 		}
 
 		[[nodiscard]]
-		virtual std::string_view name() const noexcept =0;
+		std::string_view name() const noexcept
+		{
+			return m_symbol->name();
+		}
 
 	private:
-		std::shared_ptr<ITypeInfo> m_typeInfo;
+		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	class ExpressionNode
@@ -225,18 +234,12 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit FunctionDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type)
-			: DeclarationNode(line, typeInfo), m_name(std::move(name))
+		explicit FunctionDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type)
+			: DeclarationNode(line, symbol)
 		{
 			assert(type);
 
 			addChild(std::move(type));
-		}
-
-		[[nodiscard]]
-		std::string_view name() const noexcept override
-		{
-			return m_name;
 		}
 
 		[[nodiscard]]
@@ -249,9 +252,6 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
-
-	private:
-		std::string m_name;
 	};
 
 	// function-definition:
@@ -261,7 +261,7 @@ namespace meteor::cc
 	{
 	public:
 		explicit FunctionDefinitionNode(std::unique_ptr<FunctionDeclarationNode>&& declaration, std::unique_ptr<StatementNode>&& body, const std::shared_ptr<Scope>& scope)
-			: DeclarationNode(declaration->line(), declaration->typeInfo()), m_scope(scope)
+			: DeclarationNode(declaration->line(), declaration->symbol()), m_scope(scope)
 		{
 			assert(declaration);
 			assert(body);
@@ -269,12 +269,6 @@ namespace meteor::cc
 
 			addChild(std::move(declaration));
 			addChild(std::move(body));
-		}
-
-		[[nodiscard]]
-		std::string_view name() const noexcept override
-		{
-			return declaration().name();
 		}
 
 		[[nodiscard]]
@@ -311,18 +305,12 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type, bool isGlobal)
-			: DeclarationNode(line, typeInfo), m_name(std::move(name)), m_isGlobal(isGlobal)
+		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type)
+			: DeclarationNode(line, symbol)
 		{
 			assert(type);
 
 			addChild(std::move(type));
-		}
-
-		[[nodiscard]]
-		std::string_view name() const noexcept override
-		{
-			return m_name;
 		}
 
 		[[nodiscard]]
@@ -331,20 +319,10 @@ namespace meteor::cc
 			return static_cast<TypeNode&>(*children()[0]);
 		}
 
-		[[nodiscard]]
-		bool isGlobal() const noexcept
-		{
-			return m_isGlobal;
-		}
-
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
-
-	private:
-		std::string m_name;
-		bool m_isGlobal;
 	};
 
 	// empty-statement:

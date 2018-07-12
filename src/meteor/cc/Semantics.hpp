@@ -70,15 +70,28 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType)
 		{
-			auto typeInfo = std::make_shared<FunctionTypeInfo>(returnType->typeInfo());
-			auto node = std::make_unique<FunctionDeclarationNode>(name->line(), typeInfo, std::string {name->text()}, std::move(returnType));
+			const auto typeInfo = std::make_shared<FunctionTypeInfo>(returnType->typeInfo());
+			auto symbol = m_scope->find(name->text(), false);
 
-			if (!m_scope->tryRegister(node->name(), *node) && m_scope->find(node->name())->typeInfo()->name() != node->typeInfo()->name())
+			if (symbol)
 			{
-				reportError(node->line(), boost::format(u8"`%1%' redeclared as different type.") % node->name());
+				// Check signatures.
+				if (typeInfo->name() != symbol->typeInfo()->name())
+				{
+					reportError(name->line(), boost::format(u8"`%1%' redeclared as different type.") % name->text());
+				}
+			}
+			else
+			{
+				symbol = std::make_shared<Symbol>(std::string {name->text()}, typeInfo, true);
+
+				if (!m_scope->tryRegister(symbol))
+				{
+					assert(0 && "never reached");
+				}
 			}
 
-			return node;
+			return std::make_unique<FunctionDeclarationNode>(name->line(), symbol, std::move(returnType));
 		}
 
 		// function-definition
@@ -104,15 +117,15 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type)
 		{
-			auto node = std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), m_scope->parentScope() == nullptr);
+			const auto symbol = std::make_shared<Symbol>(name->text(), type->typeInfo(), m_scope->parentScope() == nullptr);
 
 			// Register to the scope.
-			if (!m_scope->tryRegister(node->name(), *node))
+			if (!m_scope->tryRegister(symbol))
 			{
-				reportError(node->line(), boost::format(u8"`%1%' is already declarared in this scope.") % node->name());
+				reportError(name->line(), boost::format(u8"`%1%' is already declarared in this scope.") % symbol->name());
 			}
 
-			return node;
+			return std::make_unique<VariableDeclarationNode>(name->line(), symbol, std::move(type));
 		}
 
 		// empty-statement

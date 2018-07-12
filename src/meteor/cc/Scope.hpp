@@ -30,7 +30,64 @@
 
 namespace meteor::cc
 {
-	class DeclarationNode;
+	class ITypeInfo;
+
+	class Symbol
+	{
+	public:
+		explicit Symbol(std::string_view name, const std::shared_ptr<ITypeInfo>& typeInfo, bool isGlobal)
+			: m_name(name)
+			, m_typeInfo(typeInfo)
+			, m_isGlobal(isGlobal)
+			, m_address(0xffff)
+		{
+			assert(m_typeInfo);
+		}
+
+		// Uncopyable, unmovable.
+		Symbol(const Symbol&) =delete;
+		Symbol(Symbol&&) =delete;
+
+		Symbol& operator=(const Symbol&) =delete;
+		Symbol& operator=(Symbol&&) =delete;
+
+		~Symbol() =default;
+
+		[[nodiscard]]
+		std::string_view name() const noexcept
+		{
+			return m_name;
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
+
+		[[nodiscard]]
+		bool isGlobal() const noexcept
+		{
+			return m_isGlobal;
+		}
+
+		[[nodiscard]]
+		Word address() const noexcept
+		{
+			return m_address;
+		}
+
+		void address(Word address) noexcept
+		{
+			m_address = address;
+		}
+
+	private:
+		std::string m_name;
+		std::shared_ptr<ITypeInfo> m_typeInfo;
+		bool m_isGlobal;
+		Word m_address;
+	};
 
 	class Scope
 	{
@@ -57,28 +114,30 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
-		const DeclarationNode* find(std::string_view name) const
+		std::shared_ptr<Symbol> find(std::string_view name, bool recursive) const
 		{
 			if (const auto it = m_table.find(name); it != std::end(m_table))
 			{
-				return &it->second.get();
+				return it->second;
 			}
-			else if (m_parent)
+			else if (recursive && m_parent)
 			{
-				return m_parent->find(name);
+				return m_parent->find(name, recursive);
 			}
 
 			return nullptr;
 		}
 
 		[[nodiscard]]
-		bool tryRegister(std::string_view name, const DeclarationNode& node)
+		bool tryRegister(const std::shared_ptr<Symbol>& symbol)
 		{
-			return m_table.try_emplace(name, node).second;
+			assert(symbol);
+
+			return m_table.try_emplace(symbol->name(), symbol).second;
 		}
 
 	private:
 		std::shared_ptr<Scope> m_parent;
-		std::unordered_map<std::string_view, std::reference_wrapper<const DeclarationNode>> m_table;
+		std::unordered_map<std::string_view, std::shared_ptr<Symbol>> m_table;
 	};
 }
