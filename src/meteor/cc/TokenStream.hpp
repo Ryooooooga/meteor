@@ -22,31 +22,69 @@
  * SOFTWARE.
 ================================================================================*/
 
-#include "meteor/cc/Parser.hpp"
+#pragma once
 
-#include <iostream>
+#include <deque>
 
-int main()
+#include "Lexer.hpp"
+
+namespace meteor::cc
 {
-	try
+	class TokenStream
 	{
-		constexpr char source[] = u8R"(
-			42;
-		)";
+	public:
+		explicit TokenStream(Lexer&& lexer)
+			: m_lexer(std::move(lexer))
+			, m_queue()
+		{
+		}
 
-		auto parser = meteor::cc::Parser { "test.c", source };
-		auto ast = parser.parse();
-	}
-	catch (const std::exception& e)
-	{
-		std::cerr
-			<< "*** caught exception ***" << std::endl
-			<< "type: " << typeid(e).name() << std::endl
-			<< "what: " << e.what() << std::endl;
-	}
-	catch (...)
-	{
-		std::cerr
-			<< "*** caught unknown exception ***" << std::endl;
-	}
+		// Uncopyable, movable.
+		TokenStream(const TokenStream&) =delete;
+		TokenStream(TokenStream&&) =default;
+
+		TokenStream& operator=(const TokenStream&) =delete;
+		TokenStream& operator=(TokenStream&&) =default;
+
+		~TokenStream() =default;
+
+		[[nodiscard]]
+		std::string_view name() const noexcept
+		{
+			return m_lexer.name();
+		}
+
+		[[nodiscard]]
+		std::string_view code() const noexcept
+		{
+			return m_lexer.code();
+		}
+
+		void fill(std::size_t size)
+		{
+			while (m_queue.size() < size)
+			{
+				m_queue.emplace_back(m_lexer.read());
+			}
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Token> peek(std::size_t offset)
+		{
+			fill(offset + 1);
+			return m_queue[offset];
+		}
+
+		std::shared_ptr<Token> consume()
+		{
+			auto t = peek(0);
+			m_queue.pop_front();
+
+			return t;
+		}
+
+	private:
+		Lexer m_lexer;
+		std::deque<std::shared_ptr<Token>> m_queue;
+	};
 }
