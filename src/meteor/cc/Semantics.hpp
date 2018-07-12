@@ -85,7 +85,15 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
 		{
-			return std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), std::move(initializer));
+			auto node = std::make_unique<VariableDeclarationNode>(name->line(), type->typeInfo(), std::string {name->text()}, std::move(type), std::move(initializer));
+
+			// Register to the scope.
+			if (!m_scope->tryRegister(node->name(), *node))
+			{
+				reportError(node->line(), boost::format(u8"`%1%' is already declarared in this scope.") % node->name());
+			}
+
+			return node;
 		}
 
 		// empty-statement
@@ -138,6 +146,13 @@ namespace meteor::cc
 		}
 
 	private:
+		template <typename Message>
+		[[noreturn]]
+		void reportError(size_t line, Message&& message)
+		{
+			throw std::runtime_error { (boost::format(u8"%1%(%2%): %3%") % m_name % line % std::forward<Message>(message)).str() };
+		}
+
 		std::string m_name;
 		std::shared_ptr<Scope> m_scope;
 
