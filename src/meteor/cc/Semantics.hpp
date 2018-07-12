@@ -61,10 +61,9 @@ namespace meteor::cc
 		void actOnRootEnded()
 		{
 			assert(m_scope);
+			assert(m_scope->parentScope() == nullptr);
 
 			m_scope = m_scope->parentScope();
-
-			assert(m_scope == nullptr);
 		}
 
 		// function-declaration
