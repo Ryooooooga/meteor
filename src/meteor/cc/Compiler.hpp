@@ -91,6 +91,19 @@ namespace meteor::cc
 		{
 		}
 
+		// compound-statement:
+		//     '{' statement* '}'
+		void visit(CompoundStatementNode& node)
+		{
+			// TODO: scope
+
+			// statement*
+			for (const auto& child : node.children())
+			{
+				child->accept(*this);
+			}
+		}
+
 		// if-statement:
 		//     'if' '(' expression ')' statement
 		//     'if' '(' expression ')' statement 'else' statement

@@ -41,6 +41,7 @@ namespace meteor::cc
 
 	class RootNode;
 	class EmptyStatementNode;
+	class CompoundStatementNode;
 	class IfStatementNode;
 	class ExpressionStatementNode;
 	class ParenExpressionNode;
@@ -54,6 +55,7 @@ namespace meteor::cc
 
 		virtual void visit(RootNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
+		virtual void visit(CompoundStatementNode& node) =0;
 		virtual void visit(IfStatementNode& node) =0;
 		virtual void visit(ExpressionStatementNode& node) =0;
 		virtual void visit(ParenExpressionNode& node) =0;
@@ -171,6 +173,27 @@ namespace meteor::cc
 	{
 	public:
 		using StatementNode::StatementNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// compound-statement:
+	//     '{' statement* '}'
+	class CompoundStatementNode
+		: public StatementNode
+	{
+	public:
+		using StatementNode::StatementNode;
+
+		void addChild(std::unique_ptr<StatementNode>&& node)
+		{
+			assert(node);
+
+			Node::addChild(std::move(node));
+		}
 
 		void accept(IVisitor& visitor) override
 		{
@@ -368,6 +391,12 @@ namespace meteor::cc
 		void visit(EmptyStatementNode& node)
 		{
 			print(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(CompoundStatementNode& node)
+		{
+			print(u8"CompoundStatementNode");
 			visitChildren(node);
 		}
 

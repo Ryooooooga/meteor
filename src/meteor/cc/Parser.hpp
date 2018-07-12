@@ -173,6 +173,10 @@ namespace meteor::cc
 					// empty-statement
 					return parseEmptyStatement();
 
+				case TokenKind::leftBrace:
+					// compound-statement
+					return parseCompoundStatement();
+
 				case TokenKind::keyword_if:
 					// if-statement
 					return parseIfStatement();
@@ -191,6 +195,28 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::semicolon);
 
 			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		// compound-statement:
+		//     '{' statement* '}'
+		std::unique_ptr<StatementNode> parseCompoundStatement()
+		{
+			// '{'
+			const auto token = matchToken(TokenKind::leftBrace);
+
+			auto node = std::make_unique<CompoundStatementNode>(token->line());
+
+			// statement*
+			while (peekToken()->kind() != TokenKind::rightBrace)
+			{
+				// statement
+				node->addChild(parseStatement());
+			}
+
+			// '}'
+			matchToken(TokenKind::rightBrace);
+
+			return node;
 		}
 
 		// if-statement:
