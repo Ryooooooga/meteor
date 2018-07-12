@@ -90,7 +90,7 @@ namespace meteor::cc
 		}
 
 		// function-declaration:
-		//     type name parameter-list ';'
+		//     type identifier parameter-list ';'
 		void visit(FunctionDeclarationNode& node)
 		{
 			// TODO:
@@ -98,7 +98,7 @@ namespace meteor::cc
 		}
 
 		// function-definition:
-		//     type name parameter-list compound-statement
+		//     type identifier parameter-list compound-statement
 		void visit(FunctionDefinitionNode& node)
 		{
 			// function-declaration
@@ -109,6 +109,15 @@ namespace meteor::cc
 
 			// RET
 			add_RET();
+		}
+
+		// variable-declaration:
+		//     type identifier ';'
+		//     type identifier '=' expression ';'
+		void visit(VariableDeclarationNode& node)
+		{
+			// TODO:
+			(void)node;
 		}
 
 		// empty-statement:

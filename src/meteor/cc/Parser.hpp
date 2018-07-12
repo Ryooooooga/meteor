@@ -166,11 +166,32 @@ namespace meteor::cc
 		// variable-declaration:
 		//     type identifier ';'
 		//     type identifier '=' expression ';'
+		std::unique_ptr<DeclarationNode> parseVariableDeclaration()
+		{
+			// type
+			auto type = parseType();
+
+			// identifier
+			const auto name = matchToken(TokenKind::identifier);
+
+			return parseVariableDeclaration(std::move(type), name);
+		}
+
 		std::unique_ptr<DeclarationNode> parseVariableDeclaration(std::unique_ptr<TypeNode>&& type, const std::shared_ptr<Token>& name)
 		{
-			(void)type;
-			(void)name;
-			reportError(1, "not implemented");
+			std::unique_ptr<ExpressionNode> initializer;
+
+			// '='
+			if (consumeTokenIf(TokenKind::assign))
+			{
+				// expression
+				initializer = parseExpression();
+			}
+
+			// ';'
+			matchToken(TokenKind::semicolon);
+
+			return std::make_unique<VariableDeclarationNode>(name->line(), std::string {name->text()}, std::move(type), std::move(initializer));
 		}
 
 		// statement:
@@ -192,6 +213,10 @@ namespace meteor::cc
 				case TokenKind::keyword_if:
 					// if-statement
 					return parseIfStatement();
+
+				case TokenKind::keyword_int:
+					// variable-declaration
+					return parseVariableDeclaration();
 
 				default:
 					// expression-statement

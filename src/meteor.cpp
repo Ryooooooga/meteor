@@ -35,7 +35,7 @@ int main()
 	{
 		constexpr char source[] = u8R"(
 			int main() {
-				42;
+				int a = 42;
 			}
 		)";
 

@@ -42,6 +42,7 @@ namespace meteor::cc
 	class RootNode;
 	class FunctionDeclarationNode;
 	class FunctionDefinitionNode;
+	class VariableDeclarationNode;
 	class EmptyStatementNode;
 	class CompoundStatementNode;
 	class IfStatementNode;
@@ -58,6 +59,7 @@ namespace meteor::cc
 		virtual void visit(RootNode& node) =0;
 		virtual void visit(FunctionDeclarationNode& node) =0;
 		virtual void visit(FunctionDefinitionNode& node) =0;
+		virtual void visit(VariableDeclarationNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
 		virtual void visit(CompoundStatementNode& node) =0;
 		virtual void visit(IfStatementNode& node) =0;
@@ -253,6 +255,49 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
+	};
+
+	// variable-declaration:
+	//     type identifier ';'
+	//     type identifier '=' expression ';'
+	class VariableDeclarationNode
+		: public DeclarationNode
+	{
+	public:
+		explicit VariableDeclarationNode(std::size_t line, std::string name, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ExpressionNode>&& initializer)
+			: DeclarationNode(line), m_name(std::move(name))
+		{
+			assert(type);
+
+			addChild(std::move(type));
+			addChild(std::move(initializer));
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept override
+		{
+			return m_name;
+		}
+
+		[[nodiscard]]
+		TypeNode& type() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		ExpressionNode* initializer() const noexcept
+		{
+			return static_cast<ExpressionNode*>(children()[1].get());
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
+	private:
+		std::string m_name;
 	};
 
 	// empty-statement:
@@ -486,6 +531,12 @@ namespace meteor::cc
 		void visit(FunctionDefinitionNode& node)
 		{
 			print(u8"FunctionDefinitionNode %1%", node.name());
+			visitChildren(node);
+		}
+
+		void visit(VariableDeclarationNode& node)
+		{
+			print(u8"VariableDeclarationNode %1%", node.name());
 			visitChildren(node);
 		}
 
