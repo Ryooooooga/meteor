@@ -311,8 +311,8 @@ namespace meteor::cc
 		: public DeclarationNode
 	{
 	public:
-		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type)
-			: DeclarationNode(line, typeInfo), m_name(std::move(name))
+		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<ITypeInfo>& typeInfo, std::string name, std::unique_ptr<TypeNode>&& type, bool isGlobal)
+			: DeclarationNode(line, typeInfo), m_name(std::move(name)), m_isGlobal(isGlobal)
 		{
 			assert(type);
 
@@ -331,6 +331,12 @@ namespace meteor::cc
 			return static_cast<TypeNode&>(*children()[0]);
 		}
 
+		[[nodiscard]]
+		bool isGlobal() const noexcept
+		{
+			return m_isGlobal;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
@@ -338,6 +344,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+		bool m_isGlobal;
 	};
 
 	// empty-statement:
