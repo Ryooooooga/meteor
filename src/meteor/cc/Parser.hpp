@@ -65,7 +65,7 @@ namespace meteor::cc
 			while (peekToken()->kind() != TokenKind::endOfFile)
 			{
 				// external-declaration
-				node->addChild(parseExternalDeclaration());
+				node->addChild({}, parseExternalDeclaration());
 			}
 
 			return node;
@@ -126,7 +126,7 @@ namespace meteor::cc
 			while (peekToken()->kind() != TokenKind::rightBrace)
 			{
 				// statement
-				node->addChild(parseStatement());
+				node->addChild({}, parseStatement());
 			}
 
 			// '}'
@@ -290,12 +290,12 @@ namespace meteor::cc
 			if (!consumeTokenIf(TokenKind::keyword_void))
 			{
 				// parameter-declaration
-				node->addChild(parseParameterDeclaration());
+				node->addChild({}, parseParameterDeclaration());
 
 				// {',' parameter-declaration}*
 				while (consumeTokenIf(TokenKind::comma))
 				{
-					node->addChild(parseParameterDeclaration());
+					node->addChild({}, parseParameterDeclaration());
 				}
 			}
 

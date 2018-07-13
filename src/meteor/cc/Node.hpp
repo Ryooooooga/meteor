@@ -37,6 +37,7 @@ namespace meteor::cc
 	class Symbol;
 	class Scope;
 
+	class Parser;
 	class SymbolAnalyzer;
 
 #define METEOR_CC_NODE(name) class name;
@@ -152,7 +153,7 @@ namespace meteor::cc
 			return m_filename;
 		}
 
-		void addChild(std::unique_ptr<DeclarationNode>&& node)
+		void addChild(Passkey<Parser>, std::unique_ptr<DeclarationNode>&& node)
 		{
 			assert(node);
 
@@ -204,7 +205,7 @@ namespace meteor::cc
 		{
 		}
 
-		void addChild(std::unique_ptr<StatementNode>&& node)
+		void addChild(Passkey<Parser>, std::unique_ptr<StatementNode>&& node)
 		{
 			assert(node);
 
@@ -398,7 +399,7 @@ namespace meteor::cc
 	public:
 		using Node::Node;
 
-		void addChild(std::unique_ptr<DeclarationNode>&& node)
+		void addChild(Passkey<Parser>, std::unique_ptr<DeclarationNode>&& node)
 		{
 			assert(node);
 
