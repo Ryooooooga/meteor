@@ -198,6 +198,30 @@ namespace meteor::cc
 
 	// --- declaration ---
 
+	// function-declaration:
+	//     type declarator compound-statement
+	class FunctionDeclarationNode
+		: public DeclarationNode
+	{
+	public:
+		explicit FunctionDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator, std::unique_ptr<StatementNode>&& body)
+			: DeclarationNode(line)
+		{
+			assert(typeSpecifier);
+			assert(declarator);
+			assert(body);
+
+			addChild(std::move(typeSpecifier));
+			addChild(std::move(declarator));
+			addChild(std::move(body));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// parameter-declaration:
 	//     type declarator
 	class ParameterDeclarationNode
@@ -358,6 +382,12 @@ namespace meteor::cc
 		void visit(CompoundStatementNode& node)
 		{
 			write(u8"CompoundStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(FunctionDeclarationNode& node)
+		{
+			write(u8"FunctionDeclarationNode");
 			visitChildren(node);
 		}
 

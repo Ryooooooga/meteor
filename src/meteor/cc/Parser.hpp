@@ -152,8 +152,7 @@ namespace meteor::cc
 			// compound-statement
 			auto body = parseCompoundStatement();
 
-			// return std::make_unique<FunctionDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator), std::move(body));
-			throw std::runtime_error {"not implemented"};
+			return std::make_unique<FunctionDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator), std::move(body));
 		}
 
 		// parameter-declaration:

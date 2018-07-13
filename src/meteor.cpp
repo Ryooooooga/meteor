@@ -35,25 +35,25 @@ int main()
 	{
 		constexpr char source[] = u8R"(
 			int f(int a, int b) {
-				int c;
+				// int c;
 			}
 
 			int main(void) {
-				int a;
-				int b;
+				// int a;
+				// int b;
 				{
-					int c;
-					int d;
-					int e;
+					// int c;
+					// int d;
+					// int e;
 				}
 				{
-					int c;
-					int d;
+					// int c;
+					// int d;
 				}
 			}
 
-			int a;
-			int main(void);
+			// int a;
+			// int main(void);
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };
