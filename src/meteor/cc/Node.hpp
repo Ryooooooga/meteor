@@ -126,7 +126,7 @@ namespace meteor::cc
 	};
 
 	// root:
-	//     function-declaration*
+	//     declaration*
 	class RootNode
 		: public Node
 	{
@@ -143,8 +143,7 @@ namespace meteor::cc
 			return m_filename;
 		}
 
-		// TODO: Declarations only
-		void addChild(std::unique_ptr</*DeclarationNode*/Node>&& node)
+		void addChild(std::unique_ptr<DeclarationNode>&& node)
 		{
 			assert(node);
 
@@ -182,6 +181,20 @@ namespace meteor::cc
 
 	// --- type ---
 
+	// integer-type:
+	//     'int'
+	class IntegerTypeNode
+		: public TypeNode
+	{
+	public:
+		using TypeNode::TypeNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// Node printer.
 	class Printer
 		: private IVisitor
@@ -217,6 +230,12 @@ namespace meteor::cc
 		void visit(EmptyStatementNode& node)
 		{
 			write(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(IntegerTypeNode& node)
+		{
+			write(u8"IntegerTypeNode");
 			visitChildren(node);
 		}
 

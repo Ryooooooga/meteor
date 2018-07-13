@@ -55,17 +55,17 @@ namespace meteor::cc
 
 	private:
 		// root:
-		//     TODO
+		//     declaration*
 		[[nodiscard]]
 		std::unique_ptr<RootNode> parseRoot()
 		{
 			auto node = std::make_unique<RootNode>(m_stream.name());
 
-			// statement*
+			// declaration*
 			while (peekToken()->kind() != TokenKind::endOfFile)
 			{
-				// statement
-				node->addChild(parseStatement());
+				// declaration
+				node->addChild(parseDeclaration());
 			}
 
 			return node;
@@ -99,6 +99,64 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::semicolon);
 
 			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		// --- declaration ---
+
+		// declaration:
+		//     function-declaration
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> parseDeclaration()
+		{
+			return parseFunctionDeclaration();
+		}
+
+		// function-declaration:
+		//     type declarator compound-statement
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> parseFunctionDeclaration()
+		{
+			// type
+			auto typeSpecifier = parseType();
+
+			// // declarator
+			// auto declarator = parseDeclarator();
+
+			// // compound-statement
+			// auto body = parseStatement(); // TODO:
+
+			// return std::make_unique<FunctionDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator), std::move(body));
+			throw std::runtime_error {"not implemented"};
+		}
+
+		// --- type ---
+
+		// type:
+		//     integer-type
+		[[nodiscard]]
+		std::unique_ptr<TypeNode> parseType()
+		{
+			switch (const auto token = peekToken(); token->kind())
+			{
+				case TokenKind::keyword_int:
+					// integer-type
+					return parseIntegerType();
+
+				default:
+					// error
+					reportError(boost::format(u8"unexpected token `%1%', expected type.") % token->text());
+			}
+		}
+
+		// integer-type:
+		//     'int'
+		[[nodiscard]]
+		std::unique_ptr<TypeNode> parseIntegerType()
+		{
+			// 'int'
+			const auto token = matchToken(TokenKind::keyword_int);
+
+			return std::make_unique<IntegerTypeNode>(token->line());
 		}
 
 		[[nodiscard]]
