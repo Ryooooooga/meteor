@@ -34,6 +34,8 @@
 
 namespace meteor::cc
 {
+	class Symbol;
+
 #define METEOR_CC_NODE(name) class name;
 #include "Node.def.hpp"
 
@@ -300,6 +302,7 @@ namespace meteor::cc
 		explicit IdentifierDeclaratorNode(std::size_t line, std::string_view name)
 			: DeclaratorNode(line)
 			, m_name(name)
+			, m_symbol(nullptr)
 		{
 		}
 
@@ -309,6 +312,12 @@ namespace meteor::cc
 			return m_name;
 		}
 
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const noexcept
+		{
+			return m_symbol;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
@@ -316,6 +325,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// parameter-list:
@@ -373,6 +383,7 @@ namespace meteor::cc
 		explicit IdentifierExpressionNode(std::size_t line, std::string_view name)
 			: ExpressionNode(line)
 			, m_name(name)
+			, m_symbol(nullptr)
 		{
 		}
 
@@ -382,6 +393,12 @@ namespace meteor::cc
 			return m_name;
 		}
 
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const noexcept
+		{
+			return m_symbol;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
@@ -389,6 +406,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_name;
+		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// --- type ---
