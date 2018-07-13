@@ -155,7 +155,7 @@ namespace meteor::cc
 			// declarator
 			auto declarator = parseDeclarator();
 
-			throw std::runtime_error {"not implemented parseParameterDeclaration"};
+			return std::make_unique<ParameterDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator));
 		}
 
 		// --- declarator ---
