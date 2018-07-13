@@ -24,6 +24,7 @@
 
 // #include "meteor/cc/Compiler.hpp"
 #include "meteor/cc/Parser.hpp"
+#include "meteor/cc/SymbolAnalyzer.hpp"
 
 #include "meteor/runtime/Processor.hpp"
 
@@ -65,6 +66,7 @@ int main()
 		// auto compiler = meteor::cc::Compiler {};
 		// auto program = compiler.compile(*ast);
 
+		meteor::cc::SymbolAnalyzer {}.resolve(*ast);
 		meteor::cc::Printer {std::cout}.print(*ast);
 
 		// for (meteor::Word addr = 0; addr < program.size(); addr++)

@@ -37,6 +37,8 @@ namespace meteor::cc
 	class Symbol;
 	class Scope;
 
+	class SymbolAnalyzer;
+
 #define METEOR_CC_NODE(name) class name;
 #include "Node.def.hpp"
 
@@ -162,6 +164,13 @@ namespace meteor::cc
 			visitor.visit(*this);
 		}
 
+		void scope(Passkey<SymbolAnalyzer>, const std::shared_ptr<Scope>& scope)
+		{
+			assert(scope);
+
+			m_scope = scope;
+		}
+
 	private:
 		std::string m_filename;
 		std::shared_ptr<Scope> m_scope;
@@ -207,6 +216,13 @@ namespace meteor::cc
 			visitor.visit(*this);
 		}
 
+		void scope(Passkey<SymbolAnalyzer>, const std::shared_ptr<Scope>& scope)
+		{
+			assert(scope);
+
+			m_scope = scope;
+		}
+
 	private:
 		std::shared_ptr<Scope> m_scope;
 	};
@@ -223,6 +239,12 @@ namespace meteor::cc
 			assert(expression);
 
 			addChild(std::move(expression));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& expression() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
 		}
 
 		void accept(IVisitor& visitor) override
@@ -252,9 +274,34 @@ namespace meteor::cc
 			addChild(std::move(body));
 		}
 
+		[[nodiscard]]
+		TypeNode& typeSpecifier() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[1]);
+		}
+
+		[[nodiscard]]
+		StatementNode& body() const noexcept
+		{
+			return static_cast<StatementNode&>(*children()[2]);
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
+		}
+
+		void scope(Passkey<SymbolAnalyzer>, const std::shared_ptr<Scope>& scope)
+		{
+			assert(scope);
+
+			m_scope = scope;
 		}
 
 	private:
@@ -378,6 +425,18 @@ namespace meteor::cc
 
 			addChild(std::move(declarator));
 			addChild(std::move(parameters));
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		ParameterListNode& parameters() const noexcept
+		{
+			return static_cast<ParameterListNode&>(*children()[1]);
 		}
 
 		void accept(IVisitor& visitor) override
