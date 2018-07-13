@@ -53,7 +53,7 @@ int main()
 			}
 
 			int a;
-			int main();
+			int main(void);
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };

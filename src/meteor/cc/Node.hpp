@@ -205,6 +205,31 @@ namespace meteor::cc
 		std::string m_name;
 	};
 
+	// function-declarator:
+	//     direct-declarator parameter-list
+
+	// parameter-list:
+	//     '(' 'void' ')'
+	//     '(' parameter-declaration {',' parameter-declaration}* ')'
+	class ParameterListNode
+		: public Node
+	{
+	public:
+		using Node::Node;
+
+		void addChild(std::unique_ptr<DeclarationNode>&& node)
+		{
+			assert(node);
+
+			Node::addChild(std::move(node));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// --- expression ---
 
 	// --- type ---
@@ -252,6 +277,12 @@ namespace meteor::cc
 		void visit(RootNode& node)
 		{
 			write(u8"RootNode %1%", node.filename());
+			visitChildren(node);
+		}
+
+		void visit(ParameterListNode& node)
+		{
+			write(u8"ParameterListNode");
 			visitChildren(node);
 		}
 

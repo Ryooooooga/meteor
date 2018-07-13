@@ -47,6 +47,7 @@
 #endif
 
 METEOR_CC_NODE(RootNode)
+METEOR_CC_NODE(ParameterListNode)
 
 METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
 

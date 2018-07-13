@@ -110,6 +110,9 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<StatementNode> parseCompoundStatement()
 		{
+			// '{'
+			matchToken(TokenKind::leftBrace);
+
 			throw std::runtime_error {"not implemented parseCompoundStatement"};
 		}
 
@@ -141,15 +144,103 @@ namespace meteor::cc
 			throw std::runtime_error {"not implemented"};
 		}
 
+		// parameter-declaration:
+		//     type declarator
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> parseParameterDeclaration()
+		{
+			// type
+			auto typeSpecifier = parseType();
+
+			// declarator
+			auto declarator = parseDeclarator();
+
+			throw std::runtime_error {"not implemented parseParameterDeclaration"};
+		}
+
 		// --- declarator ---
 
 		// declarator:
-		//     identifier-declarator
+		//     direct-declarator
 		[[nodiscard]]
 		std::unique_ptr<DeclaratorNode> parseDeclarator()
 		{
+			return parseDirectDeclarator();
+		}
+
+		// direct-declarator:
+		//     primary-declarator declarator-postfix*
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseDirectDeclarator()
+		{
+			// primary-declarator
+			auto declarator = parsePrimaryDeclarator();
+
+			// declarator-postfix*
+			while (true)
+			{
+				switch (peekToken()->kind())
+				{
+					case TokenKind::leftParen:
+						// function-declarator
+						declarator = parseFunctionDeclarator(std::move(declarator));
+						return declarator; // TODO: repeat
+						break;
+
+					default:
+						return declarator;
+				}
+			}
+		}
+
+		// primary-declarator:
+		//     identifier-declarator
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parsePrimaryDeclarator()
+		{
 			// identifier-declarator
 			return parseIdentifierDeclarator();
+		}
+
+		// function-declarator:
+		//     direct-declarator parameter-list
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseFunctionDeclarator(std::unique_ptr<DeclaratorNode>&& declarator)
+		{
+			// parameter-list
+			auto parameters = parseParameterList();
+
+			(void)declarator; throw std::runtime_error {"not implemented parseFunctionDeclarator"}; // TODO:
+		}
+
+		// parameter-list:
+		//     '(' 'void' ')'
+		//     '(' parameter-declaration {',' parameter-declaration}* ')'
+		[[nodiscard]]
+		std::unique_ptr<ParameterListNode> parseParameterList()
+		{
+			// '('
+			const auto token = matchToken(TokenKind::leftParen);
+
+			auto node = std::make_unique<ParameterListNode>(token->line());
+
+			// 'void'?
+			if (!consumeTokenIf(TokenKind::keyword_void))
+			{
+				// parameter-declaration
+				node->addChild(parseParameterDeclaration());
+
+				// {',' parameter-declaration}*
+				while (consumeTokenIf(TokenKind::comma))
+				{
+					node->addChild(parseParameterDeclaration());
+				}
+			}
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return node;
 		}
 
 		// identifier-declarator
