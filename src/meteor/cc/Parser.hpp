@@ -111,9 +111,21 @@ namespace meteor::cc
 		std::unique_ptr<StatementNode> parseCompoundStatement()
 		{
 			// '{'
-			matchToken(TokenKind::leftBrace);
+			const auto token = matchToken(TokenKind::leftBrace);
 
-			throw std::runtime_error {"not implemented parseCompoundStatement"};
+			auto node = std::make_unique<CompoundStatementNode>(token->line());
+
+			// statement*
+			while (peekToken()->kind() != TokenKind::rightBrace)
+			{
+				// statement
+				node->addChild(parseStatement());
+			}
+
+			// '}'
+			matchToken(TokenKind::rightBrace);
+
+			return node;
 		}
 
 		// --- declaration ---

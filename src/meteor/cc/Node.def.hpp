@@ -50,6 +50,7 @@ METEOR_CC_NODE(RootNode)
 METEOR_CC_NODE(ParameterListNode)
 
 METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
+METEOR_CC_STATEMENT_NODE(CompoundStatementNode)
 
 METEOR_CC_DECLARATOR_NODE(ParameterDeclarationNode)
 

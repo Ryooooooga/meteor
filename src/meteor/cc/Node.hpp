@@ -175,6 +175,27 @@ namespace meteor::cc
 		}
 	};
 
+	// compound-statement:
+	//     '{' statement* '}'
+	class CompoundStatementNode
+		: public StatementNode
+	{
+	public:
+		using StatementNode::StatementNode;
+
+		void addChild(std::unique_ptr<StatementNode>&& node)
+		{
+			assert(node);
+
+			Node::addChild(std::move(node));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// --- declaration ---
 
 	// parameter-declaration:
@@ -331,6 +352,12 @@ namespace meteor::cc
 		void visit(EmptyStatementNode& node)
 		{
 			write(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(CompoundStatementNode& node)
+		{
+			write(u8"CompoundStatementNode");
 			visitChildren(node);
 		}
 
