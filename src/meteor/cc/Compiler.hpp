@@ -164,13 +164,17 @@ namespace meteor::cc
 		//     '{' statement* '}'
 		void visit(CompoundStatementNode& node)
 		{
-			// TODO: scope
+			// Save local address.
+			const auto addressSaved = m_localAddress;
 
 			// statement*
 			for (const auto& child : node.children())
 			{
 				child->accept(*this);
 			}
+
+			// Restore local address.
+			m_localAddress = addressSaved;
 		}
 
 		// if-statement:
