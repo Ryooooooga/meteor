@@ -199,6 +199,26 @@ namespace meteor::cc
 		}
 	};
 
+	// expression-statement:
+	//     expression ';'
+	class ExpressionStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit ExpressionStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& expression)
+			: StatementNode(line)
+		{
+			assert(expression);
+
+			addChild(std::move(expression));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// --- declaration ---
 
 	// function-declaration:
@@ -407,6 +427,12 @@ namespace meteor::cc
 		void visit(CompoundStatementNode& node)
 		{
 			write(u8"CompoundStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(ExpressionStatementNode& node)
+		{
+			write(u8"ExpressionStatementNode");
 			visitChildren(node);
 		}
 

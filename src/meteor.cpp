@@ -45,10 +45,14 @@ int main()
 					int c;
 					int d;
 					int e;
+
+					a;
 				}
 				{
 					int c;
 					int d;
+
+					e;
 				}
 			}
 

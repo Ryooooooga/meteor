@@ -75,6 +75,9 @@ namespace meteor::cc
 
 		// statement:
 		//     empty-statement
+		//     compound-statement
+		//     variable-statement
+		//     expression-statement
 		[[nodiscard]]
 		std::unique_ptr<StatementNode> parseStatement()
 		{
@@ -93,8 +96,8 @@ namespace meteor::cc
 					return parseDeclaration(false);
 
 				default:
-					// TODO:
-					throw std::runtime_error { "not implemented" };
+					// expression-statement
+					return parseExpressionStatement();
 			}
 		}
 
@@ -130,6 +133,20 @@ namespace meteor::cc
 			matchToken(TokenKind::rightBrace);
 
 			return node;
+		}
+
+		// expression-statement:
+		//     expression ';'
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseExpressionStatement()
+		{
+			// expression
+			auto expression = parseExpression();
+
+			// ';'
+			matchToken(TokenKind::semicolon);
+
+			return std::make_unique<ExpressionStatementNode>(expression->line(), std::move(expression));
 		}
 
 		// --- declaration ---
@@ -297,6 +314,29 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::identifier);
 
 			return std::make_unique<IdentifierDeclaratorNode>(token->line(), token->text());
+		}
+
+		// --- expression ---
+
+		// expression:
+		//     TODO: primary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseExpression()
+		{
+			return parsePrimaryExpression();
+		}
+
+		// primary-expression:
+		//     TODO:
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parsePrimaryExpression()
+		{
+			switch (const auto token = peekToken(); token->kind())
+			{
+				default:
+					// error
+					reportError(boost::format(u8"unexpected token `%1%', expected expression.") % token->text());
+			}
 		}
 
 		// --- type ---
