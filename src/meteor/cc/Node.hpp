@@ -28,12 +28,23 @@
 #include <memory>
 #include <vector>
 
+#include <boost/format.hpp>
+
 #include "../util/Passkey.hpp"
 
 namespace meteor::cc
 {
 #define METEOR_CC_NODE(name) class name;
 #include "Node.def.hpp"
+
+	class IVisitor
+	{
+	public:
+		virtual ~IVisitor() =default;
+
+#define METEOR_CC_NODE(name) virtual void visit(name& node) =0;
+#include "Node.def.hpp"
+	};
 
 	class Node
 	{
@@ -65,6 +76,8 @@ namespace meteor::cc
 		{
 			return m_children;
 		}
+
+		virtual void accept(IVisitor& visitor) =0;
 
 	protected:
 		void addChild(std::unique_ptr<Node>&& node)
@@ -138,6 +151,11 @@ namespace meteor::cc
 			Node::addChild(std::move(node));
 		}
 
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
 	private:
 		std::string m_filename;
 	};
@@ -151,6 +169,11 @@ namespace meteor::cc
 	{
 	public:
 		using StatementNode::StatementNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
 	};
 
 	// --- declaration ---
@@ -158,4 +181,67 @@ namespace meteor::cc
 	// --- expression ---
 
 	// --- type ---
+
+	// Node printer.
+	class Printer
+		: private IVisitor
+	{
+	public:
+		explicit Printer(std::ostream& stream)
+			: Printer(stream, 0) {}
+
+		// Uncopyable, unmovable.
+		Printer(const Printer&) =delete;
+		Printer(Printer&&) =delete;
+
+		Printer& operator=(const Printer&) =delete;
+		Printer& operator=(Printer&&) =delete;
+
+		~Printer() =default;
+
+		void print(Node& node)
+		{
+			node.accept(*this);
+		}
+
+	private:
+		explicit Printer(std::ostream& stream, std::size_t depth)
+			: m_stream(stream), m_depth(depth) {}
+
+		void visit(RootNode& node)
+		{
+			write(u8"RootNode %1%", node.filename());
+			visitChildren(node);
+		}
+
+		void visit(EmptyStatementNode& node)
+		{
+			write(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visitChildren(Node& node)
+		{
+			Printer printer { m_stream, m_depth + 1 };
+
+			for (const auto& child : node.children())
+			{
+				child->accept(printer);
+			}
+		}
+
+		template <typename... Args>
+		void write(const std::string& format, Args&&... args)
+		{
+			for (std::size_t i = 0; i < m_depth; i++)
+			{
+				m_stream << u8"    ";
+			}
+
+			m_stream << (boost::format(format) % ... % std::forward<Args>(args)) << std::endl;
+		}
+
+		std::ostream& m_stream;
+		std::size_t m_depth;
+	};
 }

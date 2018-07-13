@@ -63,7 +63,7 @@ int main()
 		// auto compiler = meteor::cc::Compiler {};
 		// auto program = compiler.compile(*ast);
 
-		// meteor::cc::Printer {std::cout}.print(*ast);
+		meteor::cc::Printer {std::cout}.print(*ast);
 
 		// for (meteor::Word addr = 0; addr < program.size(); addr++)
 		// {
