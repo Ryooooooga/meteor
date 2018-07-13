@@ -22,8 +22,8 @@
  * SOFTWARE.
 ================================================================================*/
 
-#include "meteor/cc/Compiler.hpp"
-#include "meteor/cc/Parser.hpp"
+// #include "meteor/cc/Compiler.hpp"
+// #include "meteor/cc/Parser.hpp"
 
 #include "meteor/runtime/Processor.hpp"
 
@@ -33,50 +33,50 @@ int main()
 {
 	try
 	{
-		constexpr char source[] = u8R"(
-			int a;
+		// constexpr char source[] = u8R"(
+		// 	int a;
 
-			int f(int a, int b) {
-				int c;
-			}
+		// 	int f(int a, int b) {
+		// 		int c;
+		// 	}
 
-			int main(void) {
-				int a;
-				int b;
-				{
-					int c;
-					int d;
-					int e;
-				}
-				{
-					int c;
-					int d;
-				}
-			}
+		// 	int main(void) {
+		// 		int a;
+		// 		int b;
+		// 		{
+		// 			int c;
+		// 			int d;
+		// 			int e;
+		// 		}
+		// 		{
+		// 			int c;
+		// 			int d;
+		// 		}
+		// 	}
 
-			int main();
-		)";
+		// 	int main();
+		// )";
 
-		auto parser = meteor::cc::Parser { "test.c", source };
-		auto ast = parser.parse();
-		auto compiler = meteor::cc::Compiler {};
-		auto program = compiler.compile(*ast);
+		// auto parser = meteor::cc::Parser { "test.c", source };
+		// auto ast = parser.parse();
+		// auto compiler = meteor::cc::Compiler {};
+		// auto program = compiler.compile(*ast);
 
-		meteor::cc::Printer {std::cout}.print(*ast);
+		// meteor::cc::Printer {std::cout}.print(*ast);
 
-		for (meteor::Word addr = 0; addr < program.size(); addr++)
-		{
-			std::cout << boost::format(u8"%1$04X: %2$04X") % addr % program[addr] << std::endl;
-		}
+		// for (meteor::Word addr = 0; addr < program.size(); addr++)
+		// {
+		// 	std::cout << boost::format(u8"%1$04X: %2$04X") % addr % program[addr] << std::endl;
+		// }
 
-		auto memory = std::make_shared<meteor::runtime::Memory>(program);
-		auto processor = meteor::runtime::Processor(memory);
+		// auto memory = std::make_shared<meteor::runtime::Memory>(program);
+		// auto processor = meteor::runtime::Processor(memory);
 
-		std::size_t steps = 0;
+		// std::size_t steps = 0;
 
-		while (steps++ < 100 && processor.step())
-		{
-		}
+		// while (steps++ < 100 && processor.step())
+		// {
+		// }
 	}
 	catch (const std::exception& e)
 	{
