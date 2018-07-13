@@ -126,7 +126,10 @@ namespace meteor::cc
 	};
 
 	// root:
-	//     declaration*
+	//     external-declaration*
+	// external-declaration:
+	//     function-declaration
+	//     variable-declaration
 	class RootNode
 		: public Node
 	{
@@ -214,6 +217,28 @@ namespace meteor::cc
 			addChild(std::move(typeSpecifier));
 			addChild(std::move(declarator));
 			addChild(std::move(body));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// variable-declaration:
+	//     type declarator
+	class VariableDeclarationNode
+		: public DeclarationNode
+	{
+	public:
+		explicit VariableDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
+			: DeclarationNode(line)
+		{
+			assert(typeSpecifier);
+			assert(declarator);
+
+			addChild(std::move(typeSpecifier));
+			addChild(std::move(declarator));
 		}
 
 		void accept(IVisitor& visitor) override
@@ -388,6 +413,12 @@ namespace meteor::cc
 		void visit(FunctionDeclarationNode& node)
 		{
 			write(u8"FunctionDeclarationNode");
+			visitChildren(node);
+		}
+
+		void visit(VariableDeclarationNode& node)
+		{
+			write(u8"VariableDeclarationNode");
 			visitChildren(node);
 		}
 

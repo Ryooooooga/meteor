@@ -55,7 +55,7 @@ namespace meteor::cc
 
 	private:
 		// root:
-		//     declaration*
+		//     external-declaration*
 		[[nodiscard]]
 		std::unique_ptr<RootNode> parseRoot()
 		{
@@ -64,8 +64,8 @@ namespace meteor::cc
 			// declaration*
 			while (peekToken()->kind() != TokenKind::endOfFile)
 			{
-				// declaration
-				node->addChild(parseDeclaration());
+				// external-declaration
+				node->addChild(parseExternalDeclaration());
 			}
 
 			return node;
@@ -87,6 +87,10 @@ namespace meteor::cc
 				case TokenKind::leftBrace:
 					// compound-statement
 					return parseCompoundStatement();
+
+				case TokenKind::keyword_int:
+					// variable-declaration
+					return parseDeclaration(false);
 
 				default:
 					// TODO:
@@ -130,18 +134,20 @@ namespace meteor::cc
 
 		// --- declaration ---
 
-		// declaration:
+		// external-declaration:
 		//     function-declaration
+		//     variable-declaration
 		[[nodiscard]]
-		std::unique_ptr<DeclarationNode> parseDeclaration()
+		std::unique_ptr<DeclarationNode> parseExternalDeclaration()
 		{
-			return parseFunctionDeclaration();
+			return parseDeclaration(true);
 		}
 
-		// function-declaration:
-		//     type declarator compound-statement
+		// declaration:
+		//     function-declaration
+		//     variable-declaration
 		[[nodiscard]]
-		std::unique_ptr<DeclarationNode> parseFunctionDeclaration()
+		std::unique_ptr<DeclarationNode> parseDeclaration(bool acceptFunction)
 		{
 			// type
 			auto typeSpecifier = parseType();
@@ -149,10 +155,38 @@ namespace meteor::cc
 			// declarator
 			auto declarator = parseDeclarator();
 
+			if (acceptFunction && peekToken()->kind() == TokenKind::leftBrace)
+			{
+				// function-declaration
+				return parseFunctionDeclaration(std::move(typeSpecifier), std::move(declarator));
+			}
+			else
+			{
+				// variable-declaration
+				return parseVariableDeclaration(std::move(typeSpecifier), std::move(declarator));
+			}
+		}
+
+		// function-declaration:
+		//     type declarator compound-statement
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
+		{
 			// compound-statement
 			auto body = parseCompoundStatement();
 
 			return std::make_unique<FunctionDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator), std::move(body));
+		}
+
+		// variable-declaration:
+		//     type declarator ';'
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> parseVariableDeclaration(std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
+		{
+			// ';'
+			matchToken(TokenKind::semicolon);
+
+			return std::make_unique<VariableDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator));
 		}
 
 		// parameter-declaration:
