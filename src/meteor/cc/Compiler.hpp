@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "../Operation.hpp"
 #include "Node.hpp"
 
@@ -35,6 +37,8 @@ namespace meteor::cc
 	public:
 		explicit Compiler()
 			: m_program()
+			, m_unresolvedCallAddresses()
+			, m_localAddress()
 		{
 			m_program.reserve(256);
 		}
@@ -51,6 +55,8 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::vector<Word> compile(RootNode& node)
 		{
+			m_unresolvedCallAddresses.clear();
+
 			// Clear GR0
 			// XOR GR0, GR0
 			add_XOR(Register::general0, Register::general0);
@@ -101,6 +107,21 @@ namespace meteor::cc
 		//     type identifier parameter-list compound-statement
 		void visit(FunctionDefinitionNode& node)
 		{
+			m_localAddress = 0;
+
+			// Set the function address.
+			node.symbol()->address(position());
+
+			// Resolve call addresses.
+			const auto [begin, end] = m_unresolvedCallAddresses.equal_range(node.symbol());
+
+			for (auto it = begin; it != end; it++)
+			{
+				m_program[it->second] = node.symbol()->address();
+			}
+
+			m_unresolvedCallAddresses.erase(begin, end);
+
 			// function-declaration
 			node.declaration().accept(*this);
 
@@ -116,8 +137,21 @@ namespace meteor::cc
 		//     type identifier '=' expression ';'
 		void visit(VariableDeclarationNode& node)
 		{
-			// TODO:
-			(void)node;
+			if (const auto symbol = node.symbol(); symbol->isGlobal())
+			{
+				// Global variable.
+				// DC 0
+				symbol->address(position());
+
+				addWord(0x0000);
+			}
+			else
+			{
+				// Local variable.
+				symbol->address(m_localAddress);
+
+				m_localAddress++;
+			}
 		}
 
 		// empty-statement:
@@ -320,5 +354,8 @@ namespace meteor::cc
 		}
 
 		std::vector<Word> m_program;
+
+		std::unordered_multimap<std::shared_ptr<Symbol>, Word> m_unresolvedCallAddresses;
+		Word m_localAddress;
 	};
 }

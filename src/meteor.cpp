@@ -34,6 +34,8 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
+			int a;
+
 			int main() {
 				int a;
 				int b;
@@ -43,12 +45,11 @@ int main()
 		)";
 
 		auto parser = meteor::cc::Parser { "test.c", source };
-
 		auto ast = parser.parse();
-		meteor::cc::Printer {std::cout}.print(*ast);
-
 		auto compiler = meteor::cc::Compiler {};
 		auto program = compiler.compile(*ast);
+
+		meteor::cc::Printer {std::cout}.print(*ast);
 
 		for (meteor::Word addr = 0; addr < program.size(); addr++)
 		{

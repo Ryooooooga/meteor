@@ -556,19 +556,19 @@ namespace meteor::cc
 
 		void visit(FunctionDeclarationNode& node)
 		{
-			print(u8"FunctionDeclarationNode <%1%> %2%", node.typeInfo()->name(), node.name());
+			print(u8"FunctionDeclarationNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
 			visitChildren(node);
 		}
 
 		void visit(FunctionDefinitionNode& node)
 		{
-			print(u8"FunctionDefinitionNode <%1%> %2%", node.typeInfo()->name(), node.name());
+			print(u8"FunctionDefinitionNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
 			visitChildren(node);
 		}
 
 		void visit(VariableDeclarationNode& node)
 		{
-			print(u8"VariableDeclarationNode <%1%> %2%", node.typeInfo()->name(), node.name());
+			print(u8"VariableDeclarationNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
 			visitChildren(node);
 		}
 
