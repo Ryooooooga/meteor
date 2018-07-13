@@ -68,9 +68,11 @@ namespace meteor::cc
 
 		// function-declaration
 		[[nodiscard]]
-		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType)
+		std::unique_ptr<FunctionDeclarationNode> actOnFunctionDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& returnType, std::unique_ptr<ParameterListNode>&& parameters)
 		{
+			// TODO: Build the function type.
 			const auto typeInfo = std::make_shared<FunctionTypeInfo>(returnType->typeInfo());
+
 			auto symbol = m_scope->find(name->text(), false);
 
 			if (symbol)
@@ -91,7 +93,7 @@ namespace meteor::cc
 				}
 			}
 
-			return std::make_unique<FunctionDeclarationNode>(name->line(), symbol, std::move(returnType));
+			return std::make_unique<FunctionDeclarationNode>(name->line(), symbol, std::move(returnType), std::move(parameters));
 		}
 
 		// function-definition
@@ -113,11 +115,33 @@ namespace meteor::cc
 			return node;
 		}
 
+		// parameter-list
+		[[nodiscard]]
+		std::unique_ptr<ParameterListNode> actOnParameterListBegan(const std::shared_ptr<Token>& token)
+		{
+			return std::make_unique<ParameterListNode>(token->line());
+		}
+
 		// variable-declaration
 		[[nodiscard]]
 		std::unique_ptr<DeclarationNode> actOnVariableDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type)
 		{
 			const auto symbol = std::make_shared<Symbol>(name->text(), type->typeInfo(), m_scope->parentScope() == nullptr);
+
+			// Register to the scope.
+			if (!m_scope->tryRegister(symbol))
+			{
+				reportError(name->line(), boost::format(u8"`%1%' is already declarared in this scope.") % symbol->name());
+			}
+
+			return std::make_unique<VariableDeclarationNode>(name->line(), symbol, std::move(type));
+		}
+
+		// parameter-declaration
+		[[nodiscard]]
+		std::unique_ptr<DeclarationNode> actOnParameterDeclaration(const std::shared_ptr<Token>& name, std::unique_ptr<TypeNode>&& type)
+		{
+			const auto symbol = std::make_shared<Symbol>(name->text(), type->typeInfo(), false);
 
 			// Register to the scope.
 			if (!m_scope->tryRegister(symbol))

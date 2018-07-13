@@ -132,6 +132,18 @@ namespace meteor::cc
 			add_RET();
 		}
 
+		// parameter-list:
+		//     '(' 'void' ')'
+		//     '(' parameter-declaration {',' parameter-declaration}* ')'
+		void visit(ParameterListNode& node)
+		{
+			// parameter-declaration*
+			for (const auto& param : node.children())
+			{
+				param->accept(*this);
+			}
+		}
+
 		// variable-declaration:
 		//     type identifier ';'
 		//     type identifier '=' expression ';'
@@ -152,6 +164,15 @@ namespace meteor::cc
 
 				m_localAddress++;
 			}
+		}
+
+		// parameter-declaration:
+		//     type identifier
+		void visit(ParameterDeclarationNode& node)
+		{
+			node.symbol()->address(m_localAddress);
+
+			m_localAddress++;
 		}
 
 		// empty-statement:

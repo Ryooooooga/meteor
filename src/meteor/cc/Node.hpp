@@ -41,9 +41,11 @@ namespace meteor::cc
 	class TypeNode;
 
 	class RootNode;
+	class ParameterListNode;
 	class FunctionDeclarationNode;
 	class FunctionDefinitionNode;
 	class VariableDeclarationNode;
+	class ParameterDeclarationNode;
 	class EmptyStatementNode;
 	class CompoundStatementNode;
 	class IfStatementNode;
@@ -58,9 +60,11 @@ namespace meteor::cc
 		virtual ~IVisitor() =default;
 
 		virtual void visit(RootNode& node) =0;
+		virtual void visit(ParameterListNode& node) =0;
 		virtual void visit(FunctionDeclarationNode& node) =0;
 		virtual void visit(FunctionDefinitionNode& node) =0;
 		virtual void visit(VariableDeclarationNode& node) =0;
+		virtual void visit(ParameterDeclarationNode& node) =0;
 		virtual void visit(EmptyStatementNode& node) =0;
 		virtual void visit(CompoundStatementNode& node) =0;
 		virtual void visit(IfStatementNode& node) =0;
@@ -228,24 +232,53 @@ namespace meteor::cc
 		std::shared_ptr<Scope> m_scope;
 	};
 
+	// parameter-list:
+	//     '(' 'void' ')'
+	//     '(' parameter-declaration {',' parameter-declaration}* ')'
+	class ParameterListNode
+		: public Node
+	{
+	public:
+		using Node::Node;
+
+		void addChild(std::unique_ptr<DeclarationNode>&& parameter)
+		{
+			assert(parameter);
+
+			Node::addChild(std::move(parameter));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// function-declaration:
 	//     type name parameter-list ';'
 	class FunctionDeclarationNode
 		: public DeclarationNode
 	{
 	public:
-		explicit FunctionDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type)
+		explicit FunctionDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type, std::unique_ptr<ParameterListNode>&& parameters)
 			: DeclarationNode(line, symbol)
 		{
 			assert(type);
 
 			addChild(std::move(type));
+			addChild(std::move(parameters));
 		}
 
 		[[nodiscard]]
 		TypeNode& returnType() const noexcept
 		{
 			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		ParameterListNode& parameters() const noexcept
+		{
+			return static_cast<ParameterListNode&>(*children()[1]);
 		}
 
 		void accept(IVisitor& visitor) override
@@ -306,6 +339,32 @@ namespace meteor::cc
 	{
 	public:
 		explicit VariableDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type)
+			: DeclarationNode(line, symbol)
+		{
+			assert(type);
+
+			addChild(std::move(type));
+		}
+
+		[[nodiscard]]
+		TypeNode& type() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// parameter-declaration:
+	//     type identifier
+	class ParameterDeclarationNode
+		: public DeclarationNode
+	{
+	public:
+		explicit ParameterDeclarationNode(std::size_t line, const std::shared_ptr<Symbol>& symbol, std::unique_ptr<TypeNode>&& type)
 			: DeclarationNode(line, symbol)
 		{
 			assert(type);
@@ -554,6 +613,12 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(ParameterListNode& node)
+		{
+			print(u8"ParameterListNode");
+			visitChildren(node);
+		}
+
 		void visit(FunctionDeclarationNode& node)
 		{
 			print(u8"FunctionDeclarationNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
@@ -569,6 +634,12 @@ namespace meteor::cc
 		void visit(VariableDeclarationNode& node)
 		{
 			print(u8"VariableDeclarationNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
+			visitChildren(node);
+		}
+
+		void visit(ParameterDeclarationNode& node)
+		{
+			print(u8"ParameterDeclarationNode <%1%> %2% (#%3$04X)", node.typeInfo()->name(), node.name(), node.symbol()->address());
 			visitChildren(node);
 		}
 

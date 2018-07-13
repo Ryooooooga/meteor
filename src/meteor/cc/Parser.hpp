@@ -148,11 +148,10 @@ namespace meteor::cc
 		//     type identifier parameter-list compound-statement
 		std::unique_ptr<DeclarationNode> parseFunctionDeclaration(std::unique_ptr<TypeNode>&& returnType, const std::shared_ptr<Token>& name)
 		{
-			// TODO: parameter-list
-			matchToken(TokenKind::leftParen);
-			matchToken(TokenKind::rightParen);
+			// parameter-list
+			auto parameters = parseParameterList();
 
-			auto declaration = m_sema.actOnFunctionDeclaration(name, std::move(returnType));
+			auto declaration = m_sema.actOnFunctionDeclaration(name, std::move(returnType), std::move(parameters));
 
 			// ';'?
 			if (consumeTokenIf(TokenKind::semicolon))
@@ -166,6 +165,36 @@ namespace meteor::cc
 			auto body = parseCompoundStatement();
 
 			return m_sema.actOnFunctionEnded(std::move(declaration), std::move(body));
+		}
+
+		// parameter-list:
+		//     '(' 'void' ')'
+		//     '(' parameter-declaration {',' parameter-declaration}* ')'
+		std::unique_ptr<ParameterListNode> parseParameterList()
+		{
+			// '('
+			const auto token = matchToken(TokenKind::leftParen);
+
+			auto node = m_sema.actOnParameterListBegan(token);
+
+			// 'void'?
+			if (!consumeTokenIf(TokenKind::keyword_void))
+			{
+				// parameter-declaration
+				node->addChild(parseParameterDeclaration());
+
+				// {',' parameter-declaration}*
+				while (consumeTokenIf(TokenKind::comma))
+				{
+					// parameter-declaration
+					node->addChild(parseParameterDeclaration());
+				}
+			}
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return node;
 		}
 
 		// variable-declaration:
@@ -188,6 +217,19 @@ namespace meteor::cc
 			matchToken(TokenKind::semicolon);
 
 			return m_sema.actOnVariableDeclaration(name, std::move(type));
+		}
+
+		// parameter-declaration:
+		//     type identifier
+		std::unique_ptr<DeclarationNode> parseParameterDeclaration()
+		{
+			// type
+			auto type = parseType();
+
+			// identifier
+			const auto name = matchToken(TokenKind::identifier);
+
+			return m_sema.actOnParameterDeclaration(name, std::move(type));
 		}
 
 		// statement:

@@ -36,7 +36,11 @@ int main()
 		constexpr char source[] = u8R"(
 			int a;
 
-			int main() {
+			int f(int a, int b) {
+				int c;
+			}
+
+			int main(void) {
 				int a;
 				int b;
 				{
