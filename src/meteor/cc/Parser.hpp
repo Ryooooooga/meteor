@@ -59,7 +59,85 @@ namespace meteor::cc
 		[[nodiscard]]
 		std::unique_ptr<RootNode> parseRoot()
 		{
-			return std::make_unique<RootNode>(m_stream.name());
+			auto node = std::make_unique<RootNode>(m_stream.name());
+
+			// statement*
+			while (peekToken()->kind() != TokenKind::endOfFile)
+			{
+				// statement
+				node->addChild(parseStatement());
+			}
+
+			return node;
+		}
+
+		// --- statement ---
+
+		// statement:
+		//     empty-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseStatement()
+		{
+			switch (peekToken()->kind())
+			{
+				case TokenKind::semicolon:
+					// empty-statement
+					return parseEmptyStatement();
+
+				default:
+					// TODO:
+					throw std::runtime_error { "not implemented" };
+			}
+		}
+
+		// empty-statement:
+		//     ';'
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseEmptyStatement()
+		{
+			// ';'
+			const auto token = matchToken(TokenKind::semicolon);
+
+			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Token> peekToken()
+		{
+			return m_stream.peek(0);
+		}
+
+		std::shared_ptr<Token> consumeToken()
+		{
+			return m_stream.consume();
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Token> consumeTokenIf(TokenKind acceptable)
+		{
+			if (peekToken()->kind() == acceptable)
+			{
+				return consumeToken();
+			}
+
+			return nullptr;
+		}
+
+		std::shared_ptr<Token> matchToken(TokenKind expected)
+		{
+			if (const auto token = peekToken(); token->kind() != expected)
+			{
+				reportError(boost::format(u8"unexpected token `%1%', expected %2%.") % token->text() % expected);
+			}
+
+			return consumeToken();
+		}
+
+		template <typename Message>
+		[[noreturn]]
+		void reportError(Message&& message)
+		{
+			throw std::runtime_error { (boost::format(u8"%1%(%2%): %3%") % m_stream.name() % peekToken()->line() % std::forward<Message>(message)).str() };
 		}
 
 		TokenStream m_stream;

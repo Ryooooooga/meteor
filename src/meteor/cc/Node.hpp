@@ -144,7 +144,8 @@ namespace meteor::cc
 
 	// --- statement ---
 
-	// empty-statement
+	// empty-statement:
+	//     ';'
 	class EmptyStatementNode
 		: public StatementNode
 	{
