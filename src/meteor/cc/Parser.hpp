@@ -333,10 +333,25 @@ namespace meteor::cc
 		{
 			switch (const auto token = peekToken(); token->kind())
 			{
+				case TokenKind::identifier:
+					// identifier-expression
+					return parseIdentifierExpression();
+
 				default:
 					// error
 					reportError(boost::format(u8"unexpected token `%1%', expected expression.") % token->text());
 			}
+		}
+
+		// identifier-expression:
+		//     identifier
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseIdentifierExpression()
+		{
+			// identifier
+			const auto token = matchToken(TokenKind::identifier);
+
+			return std::make_unique<IdentifierExpressionNode>(token->line(), token->text());
 		}
 
 		// --- type ---

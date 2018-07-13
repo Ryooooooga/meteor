@@ -364,6 +364,33 @@ namespace meteor::cc
 
 	// --- expression ---
 
+	// identifier-expression:
+	//     identifier
+	class IdentifierExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit IdentifierExpressionNode(std::size_t line, std::string_view name)
+			: ExpressionNode(line)
+			, m_name(name)
+		{
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept
+		{
+			return m_name;
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
+	private:
+		std::string m_name;
+	};
+
 	// --- type ---
 
 	// integer-type:
@@ -463,6 +490,12 @@ namespace meteor::cc
 		void visit(FunctionDeclaratorNode& node)
 		{
 			write(u8"FunctionDeclaratorNode");
+			visitChildren(node);
+		}
+
+		void visit(IdentifierExpressionNode& node)
+		{
+			write(u8"IdentifierExpressionNode `%1%'", node.name());
 			visitChildren(node);
 		}
 
