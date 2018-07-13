@@ -35,6 +35,7 @@
 namespace meteor::cc
 {
 	class Symbol;
+	class Scope;
 
 #define METEOR_CC_NODE(name) class name;
 #include "Node.def.hpp"
@@ -139,6 +140,7 @@ namespace meteor::cc
 		explicit RootNode(std::string_view filename)
 			: Node(0)
 			, m_filename(filename)
+			, m_scope(nullptr)
 		{
 		}
 
@@ -162,6 +164,7 @@ namespace meteor::cc
 
 	private:
 		std::string m_filename;
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// --- statement ---
@@ -186,7 +189,11 @@ namespace meteor::cc
 		: public StatementNode
 	{
 	public:
-		using StatementNode::StatementNode;
+		explicit CompoundStatementNode(std::size_t line)
+			: StatementNode(line)
+			, m_scope(nullptr)
+		{
+		}
 
 		void addChild(std::unique_ptr<StatementNode>&& node)
 		{
@@ -199,6 +206,9 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
+
+	private:
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// expression-statement:
@@ -231,6 +241,7 @@ namespace meteor::cc
 	public:
 		explicit FunctionDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator, std::unique_ptr<StatementNode>&& body)
 			: DeclarationNode(line)
+			, m_scope(nullptr)
 		{
 			assert(typeSpecifier);
 			assert(declarator);
@@ -245,6 +256,9 @@ namespace meteor::cc
 		{
 			visitor.visit(*this);
 		}
+
+	private:
+		std::shared_ptr<Scope> m_scope;
 	};
 
 	// variable-declaration:
