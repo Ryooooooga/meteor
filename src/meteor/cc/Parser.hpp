@@ -210,7 +210,7 @@ namespace meteor::cc
 			// parameter-list
 			auto parameters = parseParameterList();
 
-			(void)declarator; throw std::runtime_error {"not implemented parseFunctionDeclarator"}; // TODO:
+			return std::make_unique<FunctionDeclaratorNode>(declarator->line(), std::move(declarator), std::move(parameters));
 		}
 
 		// parameter-list:

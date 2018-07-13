@@ -54,6 +54,7 @@ METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
 METEOR_CC_DECLARATOR_NODE(ParameterDeclarationNode)
 
 METEOR_CC_DECLARATOR_NODE(IdentifierDeclaratorNode)
+METEOR_CC_DECLARATOR_NODE(FunctionDeclaratorNode)
 
 METEOR_CC_TYPE_NODE(IntegerTypeNode)
 

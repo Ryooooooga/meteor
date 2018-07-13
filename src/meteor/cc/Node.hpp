@@ -228,9 +228,6 @@ namespace meteor::cc
 		std::string m_name;
 	};
 
-	// function-declarator:
-	//     direct-declarator parameter-list
-
 	// parameter-list:
 	//     '(' 'void' ')'
 	//     '(' parameter-declaration {',' parameter-declaration}* ')'
@@ -245,6 +242,28 @@ namespace meteor::cc
 			assert(node);
 
 			Node::addChild(std::move(node));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// function-declarator:
+	//     direct-declarator parameter-list
+	class FunctionDeclaratorNode
+		: public DeclaratorNode
+	{
+	public:
+		explicit FunctionDeclaratorNode(std::size_t line, std::unique_ptr<DeclaratorNode>&& declarator, std::unique_ptr<ParameterListNode>&& parameters)
+			: DeclaratorNode(line)
+		{
+			assert(declarator);
+			assert(parameters);
+
+			addChild(std::move(declarator));
+			addChild(std::move(parameters));
 		}
 
 		void accept(IVisitor& visitor) override
@@ -324,6 +343,12 @@ namespace meteor::cc
 		void visit(IdentifierDeclaratorNode& node)
 		{
 			write(u8"IdentifierDeclaratorNode `%1%'", node.name());
+			visitChildren(node);
+		}
+
+		void visit(FunctionDeclaratorNode& node)
+		{
+			write(u8"FunctionDeclaratorNode");
 			visitChildren(node);
 		}
 
