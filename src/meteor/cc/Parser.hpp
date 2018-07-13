@@ -24,89 +24,44 @@
 
 #pragma once
 
-#include <string>
-#include <string_view>
-
-#include <boost/format.hpp>
+#include "Node.hpp"
+#include "TokenStream.hpp"
 
 namespace meteor::cc
 {
-	enum class TypeCategory
-	{
-		integer,
-		function,
-	};
-
-	class ITypeInfo
+	class Parser
 	{
 	public:
-		ITypeInfo() =default;
-
-		// Uncopyable, unmovable.
-		ITypeInfo(const ITypeInfo&) =delete;
-		ITypeInfo(ITypeInfo&&) =delete;
-
-		ITypeInfo& operator=(const ITypeInfo&) =delete;
-		ITypeInfo& operator=(ITypeInfo&&) =delete;
-
-		virtual ~ITypeInfo() =default;
-
-		[[nodiscard]]
-		virtual TypeCategory category() const noexcept =0;
-
-		[[nodiscard]]
-		virtual std::string_view name() const noexcept =0;
-	};
-
-	class PrimitiveTypeInfo
-		: public ITypeInfo
-	{
-	public:
-		explicit PrimitiveTypeInfo(TypeCategory category, std::string name)
-			: m_category(category), m_name(std::move(name)) {}
-
-		[[nodiscard]]
-		TypeCategory category() const noexcept override
+		explicit Parser(std::string_view name, std::string_view code)
+			: m_stream(Lexer { name, code })
 		{
-			return m_category;
 		}
 
+		// Uncopyable, movable.
+		Parser(const Parser&) =delete;
+		Parser(Parser&&) =default;
+
+		Parser& operator=(const Parser&) =delete;
+		Parser& operator=(Parser&&) =default;
+
+		~Parser() =default;
+
 		[[nodiscard]]
-		std::string_view name() const noexcept override
+		std::unique_ptr<RootNode> parse()
 		{
-			return m_name;
+			// root
+			return parseRoot();
 		}
 
 	private:
-		TypeCategory m_category;
-		std::string m_name;
-	};
-
-	class FunctionTypeInfo
-		: public ITypeInfo
-	{
-	public:
-		explicit FunctionTypeInfo(const std::shared_ptr<ITypeInfo>& returnType)
-			: m_name()
-		{
-			assert(returnType);
-
-			m_name = (boost::format(u8"%1%()") % returnType->name()).str();
-		}
-
+		// root:
+		//     TODO
 		[[nodiscard]]
-		TypeCategory category() const noexcept override
+		std::unique_ptr<RootNode> parseRoot()
 		{
-			return TypeCategory::function;
+			return std::make_unique<RootNode>(m_stream.name());
 		}
 
-		[[nodiscard]]
-		std::string_view name() const noexcept override
-		{
-			return m_name;
-		}
-
-	private:
-		std::string m_name;
+		TokenStream m_stream;
 	};
 }

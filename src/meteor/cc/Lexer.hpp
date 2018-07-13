@@ -36,9 +36,9 @@ namespace meteor::cc
 	class Lexer
 	{
 	public:
-		explicit Lexer(std::string name, std::string code)
-			: m_name(std::move(name))
-			, m_code(std::move(code))
+		explicit Lexer(std::string_view name, std::string_view code)
+			: m_name(name)
+			, m_code(code)
 			, m_pos(0)
 			, m_line(1)
 		{

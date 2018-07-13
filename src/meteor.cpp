@@ -23,7 +23,7 @@
 ================================================================================*/
 
 // #include "meteor/cc/Compiler.hpp"
-// #include "meteor/cc/Parser.hpp"
+#include "meteor/cc/Parser.hpp"
 
 #include "meteor/runtime/Processor.hpp"
 
@@ -33,32 +33,33 @@ int main()
 {
 	try
 	{
-		// constexpr char source[] = u8R"(
-		// 	int a;
+		constexpr char source[] = u8R"(
+			// int a;
 
-		// 	int f(int a, int b) {
-		// 		int c;
-		// 	}
+			// int f(int a, int b) {
+			// 	int c;
+			// }
 
-		// 	int main(void) {
-		// 		int a;
-		// 		int b;
-		// 		{
-		// 			int c;
-		// 			int d;
-		// 			int e;
-		// 		}
-		// 		{
-		// 			int c;
-		// 			int d;
-		// 		}
-		// 	}
+			// int main(void) {
+			// 	int a;
+			// 	int b;
+			// 	{
+			// 		int c;
+			// 		int d;
+			// 		int e;
+			// 	}
+			// 	{
+			// 		int c;
+			// 		int d;
+			// 	}
+			// }
 
-		// 	int main();
-		// )";
+			// int main();
+			;;;
+		)";
 
-		// auto parser = meteor::cc::Parser { "test.c", source };
-		// auto ast = parser.parse();
+		auto parser = meteor::cc::Parser { "test.c", source };
+		auto ast = parser.parse();
 		// auto compiler = meteor::cc::Compiler {};
 		// auto program = compiler.compile(*ast);
 
