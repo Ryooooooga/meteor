@@ -57,6 +57,7 @@ namespace meteor::cc
 		void visit(RootNode& node)
 		{
 			m_name = node.filename();
+			m_registerParams = false;
 
 			// Generate the global scope.
 			m_scope = std::make_shared<Scope>(m_scope);
@@ -122,14 +123,27 @@ namespace meteor::cc
 		//     type declarator compound-statement
 		void visit(FunctionDeclarationNode& node)
 		{
-			// TODO: symbol
+			// type
+			node.typeSpecifier().accept(*this);
+
+			// declarator
+			node.declarator().accept(*this);
+
+			// Register the function symbol.
+			if (!m_scope->tryRegister(node.declarator().symbol()))
+			{
+				reportError(node, boost::format(u8"redefinition of function `%1%'.") % node.declarator().symbol()->name());
+			}
 
 			// Generate the function scope.
 			m_scope = std::make_shared<Scope>(m_scope);
 
 			node.scope({}, m_scope);
 
-			// TODO: params
+			// Register parameters.
+			m_registerParams = true;
+			node.declarator().accept(*this);
+			m_registerParams = false;
 
 			// compound-statement
 			node.body().accept(*this);
@@ -142,21 +156,55 @@ namespace meteor::cc
 		//     type declarator
 		void visit(VariableDeclarationNode& node)
 		{
-			(void)node; // TODO:
+			// TODO: forward declarations.
+
+			// type
+			node.typeSpecifier().accept(*this);
+
+			// declarator
+			node.declarator().accept(*this);
+
+			node.symbol({}, node.declarator().symbol());
+
+			// Register the symbol.
+			if (!m_scope->tryRegister(node.symbol()))
+			{
+				reportError(node, boost::format(u8"redefinition of `%1%'.") % node.symbol()->name());
+			}
 		}
 
 		// parameter-declaration:
 		//     type declarator
 		void visit(ParameterDeclarationNode& node)
 		{
-			(void)node; // TODO:
+			// type
+			node.typeSpecifier().accept(*this);
+
+			// declarator
+			node.declarator().accept(*this);
+
+			if (m_registerParams)
+			{
+				// Register the symbol.
+				if (!m_scope->tryRegister(node.symbol()))
+				{
+					reportError(node, boost::format(u8"redefinition of `%1%'.") % node.symbol()->name());
+				}
+
+				m_registerParams = false;
+			}
+			else
+			{
+				node.symbol({}, node.declarator().symbol());
+			}
 		}
 
 		// identifier-declarator:
 		//     identifier
 		void visit(IdentifierDeclaratorNode& node)
 		{
-			(void)node; // TODO:
+			// Set the symbol.
+			node.symbol({}, std::make_shared<Symbol>(node.name()));
 		}
 
 		// function-declarator:
@@ -174,15 +222,15 @@ namespace meteor::cc
 		//     identifier
 		void visit(IdentifierExpressionNode& node)
 		{
-			(void)node; // TODO:
-			// if (const auto symbol = m_scope->find(node.name(), true))
-			// {
-			// 	node.symbol(symbol);
-			// }
-			// else
-			// {
-			// 	reportError(node, boost::format(u8"undeclared identifier `%1%'.") % node.name());
-			// }
+			// Resolve the symbol.
+			if (const auto symbol = m_scope->find(node.name(), true))
+			{
+				node.symbol({}, symbol);
+			}
+			else
+			{
+				reportError(node, boost::format(u8"undeclared identifier `%1%'.") % node.name());
+			}
 		}
 
 		// integer-type:
@@ -200,5 +248,6 @@ namespace meteor::cc
 
 		std::string_view m_name;
 		std::shared_ptr<Scope> m_scope;
+		bool m_registerParams;
 	};
 }

@@ -115,6 +115,9 @@ namespace meteor::cc
 	{
 	public:
 		using Node::Node;
+
+		[[nodiscard]]
+		virtual std::shared_ptr<Symbol> symbol() const =0;
 	};
 
 	class ExpressionNode
@@ -317,6 +320,7 @@ namespace meteor::cc
 	public:
 		explicit VariableDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
 			: DeclarationNode(line)
+			, m_symbol(nullptr)
 		{
 			assert(typeSpecifier);
 			assert(declarator);
@@ -325,10 +329,38 @@ namespace meteor::cc
 			addChild(std::move(declarator));
 		}
 
+		[[nodiscard]]
+		TypeNode& typeSpecifier() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[1]);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const noexcept
+		{
+			return m_symbol;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
+
+		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
+		{
+			assert(symbol);
+
+			m_symbol = symbol;
+		}
+
+	private:
+		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// parameter-declaration:
@@ -339,6 +371,7 @@ namespace meteor::cc
 	public:
 		explicit ParameterDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
 			: DeclarationNode(line)
+			, m_symbol(nullptr)
 		{
 			assert(typeSpecifier);
 			assert(declarator);
@@ -347,10 +380,38 @@ namespace meteor::cc
 			addChild(std::move(declarator));
 		}
 
+		[[nodiscard]]
+		TypeNode& typeSpecifier() const noexcept
+		{
+			return static_cast<TypeNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[1]);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const noexcept
+		{
+			return m_symbol;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
+
+		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
+		{
+			assert(symbol);
+
+			m_symbol = symbol;
+		}
+
+	private:
+		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// --- declarator ---
@@ -375,7 +436,7 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
-		std::shared_ptr<Symbol> symbol() const noexcept
+		std::shared_ptr<Symbol> symbol() const noexcept override
 		{
 			return m_symbol;
 		}
@@ -383,6 +444,13 @@ namespace meteor::cc
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
+		}
+
+		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
+		{
+			assert(symbol);
+
+			m_symbol = symbol;
 		}
 
 	private:
@@ -440,6 +508,12 @@ namespace meteor::cc
 			return static_cast<ParameterListNode&>(*children()[1]);
 		}
 
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const override
+		{
+			return declarator().symbol();
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
@@ -476,6 +550,13 @@ namespace meteor::cc
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
+		}
+
+		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
+		{
+			assert(symbol);
+
+			m_symbol = symbol;
 		}
 
 	private:
