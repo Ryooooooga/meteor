@@ -177,6 +177,34 @@ namespace meteor::cc
 
 	// --- declaration ---
 
+	// --- declarator ---
+
+	// identifier-declarator
+	class IdentifierDeclaratorNode
+		: public DeclaratorNode
+	{
+	public:
+		explicit IdentifierDeclaratorNode(std::size_t line, std::string_view name)
+			: DeclaratorNode(line)
+			, m_name(name)
+		{
+		}
+
+		[[nodiscard]]
+		std::string_view name() const noexcept
+		{
+			return m_name;
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
+	private:
+		std::string m_name;
+	};
+
 	// --- expression ---
 
 	// --- type ---
@@ -230,6 +258,12 @@ namespace meteor::cc
 		void visit(EmptyStatementNode& node)
 		{
 			write(u8"EmptyStatementNode");
+			visitChildren(node);
+		}
+
+		void visit(IdentifierDeclaratorNode& node)
+		{
+			write(u8"IdentifierDeclaratorNode `%1%'", node.name());
 			visitChildren(node);
 		}
 

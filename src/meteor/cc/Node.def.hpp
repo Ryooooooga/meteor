@@ -50,6 +50,8 @@ METEOR_CC_NODE(RootNode)
 
 METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
 
+METEOR_CC_DECLARATOR_NODE(IdentifierDeclaratorNode)
+
 METEOR_CC_TYPE_NODE(IntegerTypeNode)
 
 #undef METEOR_CC_NODE

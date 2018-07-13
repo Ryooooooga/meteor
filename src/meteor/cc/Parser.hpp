@@ -84,6 +84,10 @@ namespace meteor::cc
 					// empty-statement
 					return parseEmptyStatement();
 
+				case TokenKind::leftBrace:
+					// compound-statement
+					return parseCompoundStatement();
+
 				default:
 					// TODO:
 					throw std::runtime_error { "not implemented" };
@@ -99,6 +103,14 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::semicolon);
 
 			return std::make_unique<EmptyStatementNode>(token->line());
+		}
+
+		// compound-statement:
+		//     '{' statement* '}'
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseCompoundStatement()
+		{
+			throw std::runtime_error {"not implemented parseCompoundStatement"};
 		}
 
 		// --- declaration ---
@@ -119,14 +131,36 @@ namespace meteor::cc
 			// type
 			auto typeSpecifier = parseType();
 
-			// // declarator
-			// auto declarator = parseDeclarator();
+			// declarator
+			auto declarator = parseDeclarator();
 
-			// // compound-statement
-			// auto body = parseStatement(); // TODO:
+			// compound-statement
+			auto body = parseCompoundStatement();
 
 			// return std::make_unique<FunctionDeclarationNode>(declarator->line(), std::move(typeSpecifier), std::move(declarator), std::move(body));
 			throw std::runtime_error {"not implemented"};
+		}
+
+		// --- declarator ---
+
+		// declarator:
+		//     identifier-declarator
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseDeclarator()
+		{
+			// identifier-declarator
+			return parseIdentifierDeclarator();
+		}
+
+		// identifier-declarator
+		//     identifier
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseIdentifierDeclarator()
+		{
+			// identifier
+			const auto token = matchToken(TokenKind::identifier);
+
+			return std::make_unique<IdentifierDeclaratorNode>(token->line(), token->text());
 		}
 
 		// --- type ---
