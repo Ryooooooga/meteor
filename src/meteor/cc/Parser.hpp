@@ -319,11 +319,61 @@ namespace meteor::cc
 		// --- expression ---
 
 		// expression:
-		//     TODO: primary-expression
+		//     comma-expression
 		[[nodiscard]]
 		std::unique_ptr<ExpressionNode> parseExpression()
 		{
-			return parsePrimaryExpression();
+			return parseCommaExpression();
+		}
+
+		// comma-expression:
+		//     assignment-expression {',' assignment-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseCommaExpression()
+		{
+			// assignment-expression
+			auto expression = parseAssignmentExpression();
+
+			// TODO: {',' assignment-expression}*
+
+			return expression;
+		}
+
+		// assignment-expression:
+		//     unary-expression
+		//     unary-expression {assignment-operator logical-or-expression}*
+		// assignment-operator:
+		//     '='
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAssignmentExpression()
+		{
+			// unary-expression
+			auto expression = parseUnaryExpression();
+
+			// TODO: {assignment-operator logical-or-expression}*
+
+			return expression;
+		}
+
+		// unary-expression:
+		//     primary-expression
+		//     '+' unary-expression
+		//     '-' unary-expression
+		//     '&' unary-expression
+		//     '*' unary-expression
+		//     '~' unary-expression
+		//     '!' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseUnaryExpression()
+		{
+			switch (const auto token = peekToken(); token->kind())
+			{
+				// TODO: unary-expression
+
+				default:
+					// primary-expression
+					return parsePrimaryExpression();
+			}
 		}
 
 		// primary-expression:
