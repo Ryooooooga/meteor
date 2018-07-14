@@ -558,6 +558,25 @@ namespace meteor::cc
 		}
 	};
 
+	class UnaryExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit UnaryExpressionNode(std::size_t line, std::unique_ptr<ExpressionNode>&& operand)
+			: ExpressionNode(line)
+		{
+			assert(operand);
+
+			addChild(std::move(operand));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& operand() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+	};
+
 	// assignment-expression:
 	//     unary-expression '=' assignment-expression
 	class AssignmentExpressionNode
@@ -565,6 +584,34 @@ namespace meteor::cc
 	{
 	public:
 		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// plus-expression:
+	//     '+' unary-expression
+	class PlusExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// minus-expression:
+	//     '-' unary-expression
+	class MinusExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
 
 		void accept(IVisitor& visitor) override
 		{

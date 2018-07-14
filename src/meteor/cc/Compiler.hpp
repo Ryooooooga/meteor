@@ -239,6 +239,29 @@ namespace meteor::cc
 			add_ST(Register::general2, 0x0000, Register::general1);
 		}
 
+		// plus-expression:
+		//     '+' unary-expression
+		void visit(PlusExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+		}
+
+		// minus-expression:
+		//     '-' unary-expression
+		void visit(MinusExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			// LD GR2, GR1
+			add_LD(Register::general2, Register::general1);
+			// LAD GR1, #0000
+			add_LAD(Register::general1, 0x0000);
+			// SUBA GR1, GR2
+			add_SUBA(Register::general1, Register::general2);
+		}
+
 		// identifier-expression:
 		//     identifier
 		void visit(IdentifierExpressionNode& node)
@@ -329,6 +352,12 @@ namespace meteor::cc
 		{
 			addWord(operations::instruction(operations::st, r, x));
 			addWord(adr);
+		}
+
+		// SUBA r1, r2
+		void add_SUBA(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::suba_r, r1, r2));
 		}
 
 		// CALL adr, x

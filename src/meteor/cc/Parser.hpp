@@ -388,12 +388,48 @@ namespace meteor::cc
 		{
 			switch (const auto token = peekToken(); token->kind())
 			{
+				case TokenKind::plus:
+					// plus-expression
+					return parsePlusExpression();
+
+				case TokenKind::minus:
+					// minus-expression
+					return parseMinusExpression();
+
 				// TODO: unary-expression
 
 				default:
 					// primary-expression
 					return parsePrimaryExpression();
 			}
+		}
+
+		// plus-expression:
+		//     '+' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parsePlusExpression()
+		{
+			// '+'
+			const auto token = matchToken(TokenKind::plus);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<PlusExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// minus-expression:
+		//     '-' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseMinusExpression()
+		{
+			// '-'
+			const auto token = matchToken(TokenKind::minus);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<MinusExpressionNode>(token->line(), std::move(operand));
 		}
 
 		// primary-expression:

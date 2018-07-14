@@ -262,6 +262,38 @@ namespace meteor::cc
 			node.typeInfo({}, node.right().typeInfo(), false);
 		}
 
+		// plus-expression:
+		//     '+' unary-expression
+		void visit(PlusExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			if (*node.operand().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operand of unary operator '+' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
+		// minus-expression:
+		//     '-' unary-expression
+		void visit(MinusExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			if (*node.operand().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operand of unary operator '-' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
 		// identifier-expression:
 		//     identifier
 		void visit(IdentifierExpressionNode& node)
