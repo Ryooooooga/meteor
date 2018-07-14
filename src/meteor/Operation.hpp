@@ -80,6 +80,12 @@ namespace meteor
 		constexpr Word svc      = 0xf000;
 
 		[[nodiscard]]
+		constexpr Word instruction(Word operation, Register r1, Register r2)
+		{
+			return operation | (static_cast<Word>(r1) << 4) | static_cast<Word>(r2);
+		}
+
+		[[nodiscard]]
 		constexpr Word operationCode(Word code) noexcept
 		{
 			return code & 0xff00;

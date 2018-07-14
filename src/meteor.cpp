@@ -22,6 +22,11 @@
  * SOFTWARE.
 ================================================================================*/
 
+#include "meteor/cc/Compiler.hpp"
+#include "meteor/cc/Printer.hpp"
+#include "meteor/cc/Parser.hpp"
+#include "meteor/cc/SymbolAnalyzer.hpp"
+
 #include "meteor/runtime/Processor.hpp"
 
 #include <iostream>
@@ -30,31 +35,49 @@ int main()
 {
 	try
 	{
-		const auto program = std::vector<meteor::Word>
-		{
-			0x1210, 0x8005, //     LAD  GR1, #0005, GR0
-			0x5010, 0x0003, //     SLA  GR1, #0003, GR0
-			0x5110, 0x0003, //     SRA  GR1, #0003, GR0
-			0xf000, 0x0001, //     SVC  #0001, GR0
-		};
+		constexpr char source[] = u8R"(
+			int x;
 
-		const auto memory = std::make_shared<meteor::runtime::Memory>(program);
-		const auto processor = std::make_unique<meteor::runtime::Processor>(memory);
+			int f(int a, int n) {
+				if (n) {
+					return a + f(a, n-1);
+				}
+
+				return 0;
+			}
+
+			int main(void) {
+				x = f(5, 8);
+			}
+		)";
+
+		auto parser = meteor::cc::Parser { "test.c", source };
+		auto ast = parser.parse();
+		auto compiler = meteor::cc::Compiler {};
+
+		meteor::cc::SymbolAnalyzer {}.resolve(*ast);
+
+		auto program = compiler.compile(*ast);
+
+		meteor::cc::Printer {std::cout}.print(*ast);
+
+		for (meteor::Word addr = 0; addr < program.size(); addr++)
+		{
+			std::cout << boost::format(u8"%1$04X: %2$04X") % addr % program[addr] << std::endl;
+		}
+
+		auto memory = std::make_shared<meteor::runtime::Memory>(program);
+		auto processor = meteor::runtime::Processor(memory);
 
 		std::size_t steps = 0;
 
-		while (steps++ < 100 && processor->step())
+		while (steps++ < 1000 && processor.step())
 		{
-			processor->memory()->dump(std::cout, 0x0000, 0x0020);
-			processor->memory()->dump(std::cout, 0xfff0, 0x10000);
-			processor->dumpRegisters(std::cout);
 		}
 
-		processor->memory()->dump(std::cout, 0x0000, 0x0020);
-		processor->memory()->dump(std::cout, 0xfff0, 0x10000);
-		processor->dumpRegisters(std::cout);
-
 		std::cout << "steps: " << steps << std::endl;
+		memory->dump(std::cout, 0x0000, 0x0030);
+		// processor.dumpRegisters(std::cout);
 	}
 	catch (const std::exception& e)
 	{
