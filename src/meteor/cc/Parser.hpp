@@ -96,6 +96,10 @@ namespace meteor::cc
 					// if-statement
 					return parseIfStatement();
 
+				case TokenKind::keyword_return:
+					// return-statement
+					return parseReturnStatement();
+
 				case TokenKind::keyword_int:
 					// variable-declaration
 					return parseDeclaration(false);
@@ -165,6 +169,29 @@ namespace meteor::cc
 			auto otherwise = parseCompoundStatement();
 
 			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
+		}
+
+		// return-statement:
+		//     'return' expression? ';'
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseReturnStatement()
+		{
+			// 'return'
+			const auto token = matchToken(TokenKind::keyword_return);
+
+			// ';'?
+			if (consumeTokenIf(TokenKind::semicolon))
+			{
+				return std::make_unique<ReturnStatementNode>(token->line(), nullptr);
+			}
+
+			// expression
+			auto expression = parseExpression();
+
+			// ';'
+			matchToken(TokenKind::semicolon);
+
+			return std::make_unique<ReturnStatementNode>(token->line(), std::move(expression));
 		}
 
 		// expression-statement:

@@ -297,6 +297,30 @@ namespace meteor::cc
 		}
 	};
 
+	// return-statement:
+	//     'return' expression? ';'
+	class ReturnStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit ReturnStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& expression)
+			: StatementNode(line)
+		{
+			addChild(std::move(expression));
+		}
+
+		[[nodiscard]]
+		ExpressionNode* expression() const noexcept
+		{
+			return static_cast<ExpressionNode*>(children()[0].get());
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// expression-statement:
 	//     expression ';'
 	class ExpressionStatementNode

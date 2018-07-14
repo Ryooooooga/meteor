@@ -147,6 +147,27 @@ namespace meteor::cc
 			}
 		}
 
+		// return-statement:
+		//     'return' expression? ';'
+		void visit(ReturnStatementNode& node)
+		{
+			// expression
+			if (const auto expression = node.expression())
+			{
+				expression->accept(*this);
+
+				// Check return value type.
+				if (*expression->typeInfo() != *m_functionType->returnType())
+				{
+					reportError(*expression, u8"incompatible return value type.");
+				}
+			}
+			else
+			{
+				// TODO: void
+			}
+		}
+
 		// expression-statement:
 		//     expression ';'
 		void visit(ExpressionStatementNode& node)
@@ -184,6 +205,8 @@ namespace meteor::cc
 			m_registerParams = false;
 
 			// compound-statement
+			m_functionType = std::static_pointer_cast<FunctionTypeInfo>(node.symbol()->typeInfo());
+
 			node.body().accept(*this);
 
 			// Pop the scope.
@@ -451,6 +474,7 @@ namespace meteor::cc
 		std::string_view m_name;
 		std::shared_ptr<Scope> m_scope;
 		std::shared_ptr<ITypeInfo> m_baseType;
+		std::shared_ptr<FunctionTypeInfo> m_functionType;
 		std::shared_ptr<ITypeInfo> m_intType = std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, 1);
 		bool m_registerParams;
 	};

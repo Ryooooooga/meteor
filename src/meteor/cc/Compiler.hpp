@@ -193,6 +193,20 @@ namespace meteor::cc
 			}
 		}
 
+		// return-statement:
+		//     'return' expression? ';'
+		void visit(ReturnStatementNode& node)
+		{
+			// expression
+			if (const auto expression = node.expression())
+			{
+				expression->accept(*this);
+			}
+
+			// RET
+			add_RET();
+		}
+
 		// expression-statement:
 		//     expression ';'
 		void visit(ExpressionStatementNode& node)

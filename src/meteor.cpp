@@ -37,16 +37,17 @@ int main()
 	{
 		constexpr char source[] = u8R"(
 			int x;
-			int y;
-			int z;
-			int w;
 
-			int f(int a, int b) {
-				w = a - b;
+			int f(int a, int n) {
+				if (n) {
+					return a + f(a, n-1);
+				}
+
+				return 0;
 			}
 
 			int main(void) {
-				f(5, 8);
+				x = f(5, 8);
 			}
 		)";
 
