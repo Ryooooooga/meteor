@@ -45,6 +45,7 @@ int main()
 			}
 
 			int main(void) {
+				x = 65534;
 				f;
 			}
 		)";
@@ -72,6 +73,9 @@ int main()
 		while (steps++ < 100 && processor.step())
 		{
 		}
+
+		std::cout << "steps: " << steps << std::endl;
+		memory->dump(std::cout, 0x0000, 0x0030);
 	}
 	catch (const std::exception& e)
 	{

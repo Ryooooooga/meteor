@@ -67,7 +67,9 @@ namespace meteor::cc
 			// LAD GR0, #0000
 			add_LAD(Register::general0, 0x0000);
 
-			// TODO: call main.
+			// Call main.
+			// CALL ?
+			const auto mainAddress = add_CALL();
 
 			// Exit with status `0`.
 			// LAD GR1, #0000
@@ -78,11 +80,19 @@ namespace meteor::cc
 			// Compile functions.
 			// external-declaration*
 			m_isLocal = false;
+			m_main = nullptr;
 
 			for (const auto& child : node.children())
 			{
 				child->accept(*this);
 			}
+
+			if (m_main == nullptr)
+			{
+				throw std::runtime_error(std::string {node.filename()} + u8": function `main' is not defined.");
+			}
+
+			m_program[mainAddress] = m_main->address();
 		}
 
 		// parameter-list:
@@ -135,6 +145,11 @@ namespace meteor::cc
 		{
 			// Save the function address.
 			node.symbol()->address({}, true, position());
+
+			if (node.symbol()->name() == u8"main")
+			{
+				m_main = node.symbol();
+			}
 
 			// declarator
 			m_isLocal = true;
@@ -316,6 +331,22 @@ namespace meteor::cc
 			addWord(adr);
 		}
 
+		// CALL adr, x
+		void add_CALL(Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::call, Register::general0, x));
+			addWord(adr);
+		}
+
+		// CALL ?, x
+		[[nodiscard]]
+		Word add_CALL(Register x = Register::general0)
+		{
+			add_CALL(0xffff, x);
+
+			return position() - 1;
+		}
+
 		// RET
 		void add_RET()
 		{
@@ -334,5 +365,6 @@ namespace meteor::cc
 		bool m_parameters;
 		bool m_lvalue;
 		Word m_locals;
+		std::shared_ptr<Symbol> m_main;
 	};
 }
