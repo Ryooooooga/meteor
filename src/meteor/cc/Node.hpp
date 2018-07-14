@@ -125,7 +125,28 @@ namespace meteor::cc
 		using Node::Node;
 
 		[[nodiscard]]
-		virtual std::shared_ptr<ITypeInfo> typeInfo() const =0;
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
+
+		[[nodiscard]]
+		bool isLvalue() const noexcept
+		{
+			return m_isLvalue;
+		}
+
+		void typeInfo(Passkey<SymbolAnalyzer>, const std::shared_ptr<ITypeInfo>& typeInfo, bool isLvalue)
+		{
+			assert(typeInfo);
+
+			m_typeInfo = typeInfo;
+			m_isLvalue = isLvalue;
+		}
+
+	private:
+		std::shared_ptr<ITypeInfo> m_typeInfo;
+		bool m_isLvalue;
 	};
 
 	class TypeNode
@@ -519,7 +540,6 @@ namespace meteor::cc
 		explicit IdentifierExpressionNode(std::size_t line, std::string_view name)
 			: ExpressionNode(line)
 			, m_name(name)
-			, m_symbol(nullptr)
 		{
 		}
 
@@ -533,12 +553,6 @@ namespace meteor::cc
 		std::shared_ptr<Symbol> symbol() const noexcept
 		{
 			return m_symbol;
-		}
-
-		[[nodiscard]]
-		std::shared_ptr<ITypeInfo> typeInfo() const noexcept override
-		{
-			return m_symbol->typeInfo();
 		}
 
 		void accept(IVisitor& visitor) override
@@ -567,7 +581,6 @@ namespace meteor::cc
 		explicit IntegerExpressionNode(std::size_t line, Word value)
 			: ExpressionNode(line)
 			, m_value(value)
-			, m_typeInfo(nullptr)
 		{
 		}
 
@@ -577,27 +590,13 @@ namespace meteor::cc
 			return m_value;
 		}
 
-		[[nodiscard]]
-		std::shared_ptr<ITypeInfo> typeInfo() const noexcept override
-		{
-			return m_typeInfo;
-		}
-
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
 
-		void typeInfo(Passkey<SymbolAnalyzer>, const std::shared_ptr<ITypeInfo>& typeInfo)
-		{
-			assert(typeInfo);
-
-			m_typeInfo = typeInfo;
-		}
-
 	private:
 		Word m_value;
-		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 
 	// --- type ---

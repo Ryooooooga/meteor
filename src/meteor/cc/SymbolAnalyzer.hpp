@@ -246,6 +246,8 @@ namespace meteor::cc
 			if (const auto symbol = m_scope->find(node.name(), true))
 			{
 				node.symbol({}, symbol);
+
+				node.typeInfo({}, symbol->typeInfo(), true);
 			}
 			else
 			{
@@ -258,7 +260,7 @@ namespace meteor::cc
 		void visit(IntegerExpressionNode& node)
 		{
 			// Resolve the type.
-			node.typeInfo({}, m_intType);
+			node.typeInfo({}, m_intType, false);
 		}
 
 		// integer-type:
