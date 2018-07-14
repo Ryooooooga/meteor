@@ -148,6 +148,24 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(AdditionExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"AdditionExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"AdditionExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(SubtractionExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"SubtractionExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"SubtractionExpressionNode");
+			visitChildren(node);
+		}
+
 		void visit(PlusExpressionNode& node)
 		{
 			if (node.typeInfo())

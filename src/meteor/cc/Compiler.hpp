@@ -272,16 +272,56 @@ namespace meteor::cc
 			// right-hand-side
 			node.right().accept(*this);
 
-			// LD GR2, GR1
-			add_LD(Register::general2, Register::general1);
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
 
 			// left-hand-side
 			const auto lvalue = std::exchange(m_lvalue, true);
 			node.left().accept(*this);
 			m_lvalue = lvalue;
 
+			// POP GR2
+			add_POP(Register::general2);
 			// ST GR2, #0000, GR1
 			add_ST(Register::general2, 0x0000, Register::general1);
+		}
+
+		// addition-expression:
+		//     additive-expression '+' mutiplicative-expression
+		void visit(AdditionExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
+
+			// left-hand-side
+			node.left().accept(*this);
+
+			// POP GR2
+			add_POP(Register::general2);
+			// ADDA GR1, GR2
+			add_ADDA(Register::general1, Register::general2);
+		}
+
+		// subtraction-expression:
+		//     additive-expression '-' mutiplicative-expression
+		void visit(SubtractionExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
+
+			// left-hand-side
+			node.left().accept(*this);
+
+			// POP GR2
+			add_POP(Register::general2);
+			// SUBA GR1, GR2
+			add_SUBA(Register::general1, Register::general2);
 		}
 
 		// plus-expression:
@@ -399,6 +439,12 @@ namespace meteor::cc
 			addWord(adr);
 		}
 
+		// ADDA r1, r2
+		void add_ADDA(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::adda_r, r1, r2));
+		}
+
 		// SUBA r1, r2
 		void add_SUBA(Register r1, Register r2)
 		{
@@ -442,6 +488,19 @@ namespace meteor::cc
 			add_JUMP(0xffff, x);
 
 			return position() - 1;
+		}
+
+		// PUSH adr, x
+		void add_PUSH(Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::push, Register::general0, x));
+			addWord(adr);
+		}
+
+		// POP r
+		void add_POP(Register r)
+		{
+			addWord(operations::instruction(operations::pop, r, Register::general0));
 		}
 
 		// CALL adr, x

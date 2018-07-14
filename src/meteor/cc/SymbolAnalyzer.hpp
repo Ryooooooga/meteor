@@ -285,6 +285,42 @@ namespace meteor::cc
 			node.typeInfo({}, node.right().typeInfo(), false);
 		}
 
+		// addition-expression:
+		//     additive-expression '+' mutiplicative-expression
+		void visit(AdditionExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo() || *node.left().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operands of binary operator '+' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
+		// subtraction-expression:
+		//     additive-expression '-' mutiplicative-expression
+		void visit(SubtractionExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo() || *node.left().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operands of binary operator '-' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
 		// plus-expression:
 		//     '+' unary-expression
 		void visit(PlusExpressionNode& node)

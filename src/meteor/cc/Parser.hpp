@@ -542,15 +542,66 @@ namespace meteor::cc
 			// multiplicative-expression
 			left = parseMultiplicativeExpression(std::move(left));
 
-			// TODO: {additive-operator multiplicative-expression}*
+			// {additive-operator multiplicative-expression}*
+			while (true)
+			{
+				switch (peekToken()->kind())
+				{
+					case TokenKind::plus:
+						// addtion-expression
+						left = parseAdditionExpression(std::move(left));
+						break;
 
-			return std::move(left);
+					case TokenKind::minus:
+						// subtraction-expression
+						left = parseSubtractionExpression(std::move(left));
+						break;
+
+					default:
+						return std::move(left);
+				}
+			}
+		}
+
+		// '+' mutiplicative-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAdditionExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// '+'
+			const auto token = matchToken(TokenKind::plus);
+
+			// multiplicative-expression
+			auto right = parseMultiplicativeExpression();
+
+			return std::make_unique<AdditionExpressionNode>(token->line(), std::move(left), std::move(right));
+		}
+
+		// '-' mutiplicative-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseSubtractionExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// '-'
+			const auto token = matchToken(TokenKind::minus);
+
+			// multiplicative-expression
+			auto right = parseMultiplicativeExpression();
+
+			return std::make_unique<SubtractionExpressionNode>(token->line(), std::move(left), std::move(right));
 		}
 
 		// multiplicative-expression:
 		//     unary-expression {multiplicative-operator unary-expression}*
 		// multiplicative-operator:
 		//     '*' | '/' | '%'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseMultiplicativeExpression()
+		{
+			// unary-expression
+			auto left = parseUnaryExpression();
+
+			return parseMultiplicativeExpression(std::move(left));
+		}
+
 		[[nodiscard]]
 		std::unique_ptr<ExpressionNode> parseMultiplicativeExpression(std::unique_ptr<ExpressionNode>&& left)
 		{

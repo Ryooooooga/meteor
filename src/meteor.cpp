@@ -48,18 +48,8 @@ int main()
 			}
 
 			int main(void) {
-				x = 1;
-
-				if (x) {
-					y = 2;
-				}
-
-				if (x) {
-					z = 3;
-				}
-				else {
-					w = 4;
-				}
+				z = 8 - 5 + 1;
+				w = 8 + 5;
 			}
 		)";
 
