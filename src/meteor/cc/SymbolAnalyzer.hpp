@@ -190,6 +190,12 @@ namespace meteor::cc
 
 			if (m_registerParams)
 			{
+				// Check the parameter types.
+				if (m_baseType->category() == TypeCategory::function)
+				{
+					reportError(node, u8"parameter type don't accept a function type.");
+				}
+
 				// Register the symbol.
 				if (!m_scope->tryRegister(node.symbol()))
 				{
