@@ -372,28 +372,26 @@ namespace meteor::cc
 		}
 
 		// assignment-expression:
-		//     unary-expression
 		//     unary-expression assignment-operator assignment-expression
-		//     logical-or-expression
+		//     conditional-expression
 		// assignment-operator:
 		//     '='
 		[[nodiscard]]
 		std::unique_ptr<ExpressionNode> parseAssignmentExpression()
 		{
 			// unary-expression
-			auto expression = parseUnaryExpression();
+			auto left = parseUnaryExpression();
 
 			//  assignment-operator assignment-expression
 			switch (peekToken()->kind())
 			{
 				case TokenKind::assign:
 					// '=' assignment-expression
-					return parseAssignAssignmentExpression(std::move(expression));
-
-				// TODO: logical-or-expression
+					return parseAssignAssignmentExpression(std::move(left));
 
 				default:
-					return expression;
+					// conditional-expression
+					return parseLogicalOrExpression(std::move(left));
 			}
 		}
 
@@ -408,6 +406,157 @@ namespace meteor::cc
 			auto right = parseAssignmentExpression();
 
 			return std::make_unique<AssignmentExpressionNode>(token->line(), std::move(left), std::move(right));
+		}
+
+		// conditional-expression:
+		//     logical-or-expression '?' expression ':' conditional-expression
+		//     logical-or-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseConditionalExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// logical-or-expression
+			auto condition = parseLogicalOrExpression(std::move(left));
+
+			// TODO: '?' expression ':' conditional-expression
+
+			return condition;
+		}
+
+		// logical-or-expression:
+		//     logical-and-expression {'||' logical-and-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseLogicalOrExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// logical-and-expression
+			left = parseLogicalAndExpression(std::move(left));
+
+			// TODO: {'||' logical-and-expression}*
+
+			return std::move(left);
+		}
+
+		// logical-and-expression:
+		//     bitwise-or-expression {'&&' bitwise-or-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseLogicalAndExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// bitwise-or-expression
+			left = parseBitwiseOrExpression(std::move(left));
+
+			// TODO: {'&&' bitwise-or-expression}*
+
+			return std::move(left);
+		}
+
+		// bitwise-or-expression:
+		//     bitwise-xor-expression {'|' bitwise-xor-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseBitwiseOrExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// bitwise-xor-expression
+			left = parseBitwiseXorExpression(std::move(left));
+
+			// TODO: {'|' bitwise-xor-expression}*
+
+			return std::move(left);
+		}
+
+		// bitwise-xor-expression:
+		//     bitwise-and-expression {'^' bitwise-and-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseBitwiseXorExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// bitwise-and-expression
+			left = parseBitwiseAndExpression(std::move(left));
+
+			// TODO: {'^' bitwise-and-expression}*
+
+			return std::move(left);
+		}
+
+		// bitwise-and-expression:
+		//     equality-expression {'&' equality-expression}*
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseBitwiseAndExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// equality-expression
+			left = parseEqualityExpression(std::move(left));
+
+			// TODO: {'&' equality-expression}*
+
+			return std::move(left);
+		}
+
+		// equality-expression:
+		//     relational-expression {equality-operator relational-expression}*
+		// equality-operator:
+		//     '==' | '!='
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseEqualityExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// relational-expression
+			left = parseRelationalExpression(std::move(left));
+
+			// TODO: {equality-operator relational-expression}*
+
+			return std::move(left);
+		}
+
+		// relational-expression:
+		//     shift-expression {relational-operator shift-expression}*
+		// relational-operator:
+		//     '<' | '<=' | '>' | '>='
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseRelationalExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// shift-expression
+			left = parseShiftExpression(std::move(left));
+
+			// TODO: {relational-operator shift-expression}*
+
+			return std::move(left);
+		}
+
+		// shift-expression:
+		//     additive-expression {shift-operator additive-expression}*
+		// shift-operator:
+		//     '<<' | '>>'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseShiftExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// additive-expression
+			left = parseAdditiveExpression(std::move(left));
+
+			// TODO: {shift-operator additive-expression}*
+
+			return std::move(left);
+		}
+
+		// additive-expression:
+		//     multiplicative-expression {additive-operator multiplicative-expression}*
+		// additive-operator:
+		//     '+' | '-'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAdditiveExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// multiplicative-expression
+			left = parseMultiplicativeExpression(std::move(left));
+
+			// TODO: {additive-operator multiplicative-expression}*
+
+			return std::move(left);
+		}
+
+		// multiplicative-expression:
+		//     unary-expression {multiplicative-operator unary-expression}*
+		// multiplicative-operator:
+		//     '*' | '/' | '%'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseMultiplicativeExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// TODO: {multiplicative-operator unary-expression}*
+
+			return std::move(left);
 		}
 
 		// unary-expression:
