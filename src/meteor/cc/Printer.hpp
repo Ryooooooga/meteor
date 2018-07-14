@@ -90,19 +90,28 @@ namespace meteor::cc
 
 		void visit(FunctionDeclarationNode& node)
 		{
-			write(u8"FunctionDeclarationNode");
+			if (node.symbol())
+				write(u8"FunctionDeclarationNode <%1%>", node.symbol()->typeInfo()->name());
+			else
+				write(u8"FunctionDeclarationNode <?>");
 			visitChildren(node);
 		}
 
 		void visit(VariableDeclarationNode& node)
 		{
-			write(u8"VariableDeclarationNode");
+			if (node.symbol())
+				write(u8"VariableDeclarationNode <%1%>", node.symbol()->typeInfo()->name());
+			else
+				write(u8"VariableDeclarationNode <?>");
 			visitChildren(node);
 		}
 
 		void visit(ParameterDeclarationNode& node)
 		{
-			write(u8"ParameterDeclarationNode");
+			if (node.symbol())
+				write(u8"ParameterDeclarationNode <%1%>", node.symbol()->typeInfo()->name());
+			else
+				write(u8"ParameterDeclarationNode <?>");
 			visitChildren(node);
 		}
 
@@ -126,7 +135,10 @@ namespace meteor::cc
 
 		void visit(IdentifierExpressionNode& node)
 		{
-			write(u8"IdentifierExpressionNode `%1%'", node.name());
+			if (node.typeInfo())
+				write(u8"IdentifierExpressionNode `%1%' <%2%>", node.name(), node.typeInfo()->name());
+			else
+				write(u8"IdentifierExpressionNode `%1%'", node.name());
 			visitChildren(node);
 		}
 

@@ -28,16 +28,12 @@
 #include <memory>
 #include <vector>
 
-#include "../util/Passkey.hpp"
+#include "Symbol.hpp"
 
 namespace meteor::cc
 {
-	class Symbol;
 	class Scope;
-	class ITypeInfo;
-
 	class Parser;
-	class SymbolAnalyzer;
 
 #define METEOR_CC_NODE(name) class name;
 #include "Node.def.hpp"
@@ -127,6 +123,9 @@ namespace meteor::cc
 	{
 	public:
 		using Node::Node;
+
+		[[nodiscard]]
+		virtual std::shared_ptr<ITypeInfo> typeInfo() const =0;
 	};
 
 	class TypeNode
@@ -534,6 +533,12 @@ namespace meteor::cc
 		std::shared_ptr<Symbol> symbol() const noexcept
 		{
 			return m_symbol;
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept override
+		{
+			return m_symbol->typeInfo();
 		}
 
 		void accept(IVisitor& visitor) override
