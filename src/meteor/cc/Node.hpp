@@ -688,6 +688,62 @@ namespace meteor::cc
 		}
 	};
 
+	// argument-list:
+	//     '(' ')'
+	//     '(' assignment-expression {',' assignment-expression}* ')'
+	class ArgumentListNode
+		: public Node
+	{
+	public:
+		using Node::Node;
+
+		void addChild(Passkey<Parser>, std::unique_ptr<ExpressionNode>&& node)
+		{
+			assert(node);
+
+			Node::addChild(std::move(node));
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// call-expression:
+	//     postfix-expression argument-list
+	class CallExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit CallExpressionNode(std::size_t line, std::unique_ptr<ExpressionNode>&& callee, std::unique_ptr<ArgumentListNode>&& arguments)
+			: ExpressionNode(line)
+		{
+			assert(callee);
+			assert(arguments);
+
+			addChild(std::move(callee));
+			addChild(std::move(arguments));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& callee() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		ArgumentListNode& arguments() const noexcept
+		{
+			return static_cast<ArgumentListNode&>(*children()[1]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// identifier-expression:
 	//     identifier
 	class IdentifierExpressionNode

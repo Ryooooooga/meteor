@@ -42,14 +42,11 @@ int main()
 			int w;
 
 			int f(int a, int b) {
-				int c;
-				c = a;
-				x = 42;
+				w = a - b;
 			}
 
 			int main(void) {
-				z = 8 - 5 + 1;
-				w = 8 + 5;
+				f(5, 8);
 			}
 		)";
 

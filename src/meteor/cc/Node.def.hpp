@@ -48,6 +48,7 @@
 
 METEOR_CC_NODE(RootNode)
 METEOR_CC_NODE(ParameterListNode)
+METEOR_CC_NODE(ArgumentListNode)
 
 METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
 METEOR_CC_STATEMENT_NODE(CompoundStatementNode)
@@ -66,6 +67,7 @@ METEOR_CC_EXPRESSION_NODE(AdditionExpressionNode)
 METEOR_CC_EXPRESSION_NODE(SubtractionExpressionNode)
 METEOR_CC_EXPRESSION_NODE(PlusExpressionNode)
 METEOR_CC_EXPRESSION_NODE(MinusExpressionNode)
+METEOR_CC_EXPRESSION_NODE(CallExpressionNode)
 METEOR_CC_EXPRESSION_NODE(IdentifierExpressionNode)
 METEOR_CC_EXPRESSION_NODE(IntegerExpressionNode)
 

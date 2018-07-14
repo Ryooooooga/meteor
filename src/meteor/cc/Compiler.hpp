@@ -107,6 +107,24 @@ namespace meteor::cc
 			}
 		}
 
+		// argument-list:
+		//     '(' ')'
+		//     '(' assignment-expression {',' assignment-expression}* ')'
+		void visit(ArgumentListNode& node)
+		{
+			// assignment-expression*
+			for (const auto& child : node.children())
+			{
+				// assignment-expression
+				child->accept(*this);
+
+				// ST GR1, n, FP
+				add_ST(Register::general1, m_locals, framePointer);
+
+				m_locals++;
+			}
+		}
+
 		// empty-statement:
 		//     ';'
 		void visit([[maybe_unused]] EmptyStatementNode& node)
@@ -276,9 +294,9 @@ namespace meteor::cc
 			add_PUSH(0x0000, Register::general1);
 
 			// left-hand-side
-			const auto lvalue = std::exchange(m_lvalue, true);
+			const auto lvalueSaved = std::exchange(m_lvalue, true);
 			node.left().accept(*this);
-			m_lvalue = lvalue;
+			m_lvalue = lvalueSaved;
 
 			// POP GR2
 			add_POP(Register::general2);
@@ -345,6 +363,30 @@ namespace meteor::cc
 			add_LAD(Register::general1, 0x0000);
 			// SUBA GR1, GR2
 			add_SUBA(Register::general1, Register::general2);
+		}
+
+		// call-expression:
+		//     postfix-expression argument-list
+		void visit(CallExpressionNode& node)
+		{
+			// argument-list
+			const auto lvalueSaved = std::exchange(m_lvalue, false);
+			const auto localsSaved = m_locals;
+			node.arguments().accept(*this);
+
+			// callee
+			m_lvalue = true;
+			node.callee().accept(*this);
+
+			m_lvalue = lvalueSaved;
+			m_locals = localsSaved;
+
+			// ADDL FP, locals
+			add_ADDL(framePointer, m_locals);
+			// CALL
+			add_CALL(0x0000, Register::general1);
+			// SUBL FP, locals
+			add_SUBL(framePointer, m_locals);
 		}
 
 		// identifier-expression:
@@ -449,6 +491,20 @@ namespace meteor::cc
 		void add_SUBA(Register r1, Register r2)
 		{
 			addWord(operations::instruction(operations::suba_r, r1, r2));
+		}
+
+		// ADDL r, adr, x
+		void add_ADDL(Register r, Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::addl_adr, r, x));
+			addWord(adr);
+		}
+
+		// SUBL r, adr, x
+		void add_SUBL(Register r, Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::subl_adr, r, x));
+			addWord(adr);
 		}
 
 		// CPA r, adr, x

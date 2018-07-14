@@ -611,7 +611,7 @@ namespace meteor::cc
 		}
 
 		// unary-expression:
-		//     primary-expression
+		//     postfix-expression
 		//     '+' unary-expression
 		//     '-' unary-expression
 		//     '&' unary-expression
@@ -634,8 +634,8 @@ namespace meteor::cc
 				// TODO: unary-expression
 
 				default:
-					// primary-expression
-					return parsePrimaryExpression();
+					// postfix-expression
+					return parsePostfixExpression();
 			}
 		}
 
@@ -665,6 +665,62 @@ namespace meteor::cc
 			auto operand = parseUnaryExpression();
 
 			return std::make_unique<MinusExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// postfix-expression:
+		//     primary-expression {postfix-expression-tail}*
+		// postfix-expression-tail:
+		//     call-expression-tail
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parsePostfixExpression()
+		{
+			// primary-expression
+			auto node = parsePrimaryExpression();
+
+			// {postfix-expression-tail}*
+			while (true)
+			{
+				switch (peekToken()->kind())
+				{
+					case TokenKind::leftParen:
+						// call-expression-tail
+						node = parseCallExpression(std::move(node));
+						break;
+
+					default:
+						return node;
+				}
+			}
+		}
+
+		// call-expression-tail:
+		//     '(' ')'
+		//     '(' assignment-expression {',' assignment-expression}* ')'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseCallExpression(std::unique_ptr<ExpressionNode>&& callee)
+		{
+			// '('
+			const auto token = matchToken(TokenKind::leftParen);
+
+			auto arguments = std::make_unique<ArgumentListNode>(token->line());
+
+			if (peekToken()->kind() != TokenKind::rightParen)
+			{
+				// assignment-expression
+				arguments->addChild({}, parseAssignmentExpression());
+
+				// {',' assignment-expression}*
+				while (consumeTokenIf(TokenKind::comma))
+				{
+					// assignment-expression
+					arguments->addChild({}, parseAssignmentExpression());
+				}
+			}
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return std::make_unique<CallExpressionNode>(callee->line(), std::move(callee), std::move(arguments));
 		}
 
 		// primary-expression:

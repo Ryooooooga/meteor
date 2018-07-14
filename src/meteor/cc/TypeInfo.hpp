@@ -116,6 +116,18 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> returnType() const noexcept
+		{
+			return m_returnType;
+		}
+
+		[[nodiscard]]
+		const std::vector<std::shared_ptr<ITypeInfo>>& parameterTypes() const noexcept
+		{
+			return m_parameterTypes;
+		}
+
+		[[nodiscard]]
 		bool equals(const ITypeInfo& type) const override
 		{
 			if (const auto p = dynamic_cast<const FunctionTypeInfo*>(&type))

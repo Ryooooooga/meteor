@@ -87,6 +87,18 @@ namespace meteor::cc
 			}
 		}
 
+		// argument-list:
+		//     '(' ')'
+		//     '(' assignment-expression {',' assignment-expression}* ')'
+		void visit(ArgumentListNode& node)
+		{
+			// assignment-expression*
+			for (const auto& child : node.children())
+			{
+				child->accept(*this);
+			}
+		}
+
 		// empty-statement:
 		//     ';'
 		void visit([[maybe_unused]] EmptyStatementNode& node)
@@ -224,8 +236,6 @@ namespace meteor::cc
 				{
 					reportError(node, boost::format(u8"redefinition of `%1%'.") % node.symbol()->name());
 				}
-
-				m_registerParams = false;
 			}
 		}
 
@@ -246,6 +256,8 @@ namespace meteor::cc
 		{
 			// parameter-list
 			node.parameters().accept(*this);
+
+			m_registerParams = false;
 
 			// Build the function type.
 			std::vector<std::shared_ptr<ITypeInfo>> paramTypes;
@@ -351,6 +363,47 @@ namespace meteor::cc
 
 			// Resolve the type.
 			node.typeInfo({}, m_intType, false);
+		}
+
+		// call-expression:
+		//     postfix-expression argument-list
+		void visit(CallExpressionNode& node)
+		{
+			// callee
+			node.callee().accept(*this);
+
+			// arguments
+			node.arguments().accept(*this);
+
+			// Check callee types.
+			if (node.callee().typeInfo()->category() != TypeCategory::function)
+			{
+				reportError(node, u8"operand is not a function.");
+			}
+
+			const auto functionType = std::static_pointer_cast<FunctionTypeInfo>(node.callee().typeInfo());
+
+			// Check argument types.
+			if (node.arguments().children().size() != functionType->parameterTypes().size())
+			{
+				reportError(node, u8"invalid number of arguments.");
+			}
+
+			if (!std::equal(
+				std::begin(node.arguments().children()),
+				std::end(node.arguments().children()),
+				std::begin(functionType->parameterTypes()),
+				std::end(functionType->parameterTypes()),
+				[](const auto& arg, const auto& argType)
+				{
+					return *static_cast<ExpressionNode&>(*arg).typeInfo() == *argType;
+				}))
+			{
+				reportError(node, u8"incompatible argument types.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, functionType->returnType(), false);
 		}
 
 		// identifier-expression:

@@ -70,6 +70,12 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(ArgumentListNode& node)
+		{
+			write(u8"ArgumentListNode");
+			visitChildren(node);
+		}
+
 		void visit(EmptyStatementNode& node)
 		{
 			write(u8"EmptyStatementNode");
@@ -181,6 +187,15 @@ namespace meteor::cc
 				write(u8"MinusExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
 			else
 				write(u8"MinusExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(CallExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"CallExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"CallExpressionNode");
 			visitChildren(node);
 		}
 
