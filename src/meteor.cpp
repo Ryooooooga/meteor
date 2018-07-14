@@ -43,7 +43,7 @@ int main()
 				x;
 				a;
 				c;
-				42;
+				(42);
 			}
 
 			int main(void) {

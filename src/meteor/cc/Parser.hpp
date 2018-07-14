@@ -327,7 +327,7 @@ namespace meteor::cc
 		}
 
 		// primary-expression:
-		//     TODO:
+		//     paren-expression
 		//     identifier-expression
 		//     integer-expression
 		[[nodiscard]]
@@ -335,6 +335,10 @@ namespace meteor::cc
 		{
 			switch (const auto token = peekToken(); token->kind())
 			{
+				case TokenKind::leftParen:
+					// paren-expression
+					return parseParenExpression();
+
 				case TokenKind::identifier:
 					// identifier-expression
 					return parseIdentifierExpression();
@@ -347,6 +351,23 @@ namespace meteor::cc
 					// error
 					reportError(boost::format(u8"unexpected token `%1%', expected expression.") % token->text());
 			}
+		}
+
+		// paren-expression:
+		//     '(' expression ')'
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseParenExpression()
+		{
+			// '('
+			matchToken(TokenKind::leftParen);
+
+			// expression
+			auto expression = parseExpression();
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return expression;
 		}
 
 		// identifier-expression:
