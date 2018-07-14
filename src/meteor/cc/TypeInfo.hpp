@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <boost/format.hpp>
 
 #include "../Type.hpp"
@@ -61,7 +62,22 @@ namespace meteor::cc
 
 		[[nodiscard]]
 		virtual std::string name() const =0;
+
+		[[nodiscard]]
+		virtual bool equals(const ITypeInfo& type) const =0;
 	};
+
+	[[nodiscard]]
+	inline bool operator ==(const ITypeInfo& a, const ITypeInfo& b)
+	{
+		return a.equals(b);
+	}
+
+	[[nodiscard]]
+	inline bool operator !=(const ITypeInfo& a, const ITypeInfo& b)
+	{
+		return !(a == b);
+	}
 
 	class FunctionTypeInfo
 		: public ITypeInfo
@@ -97,6 +113,26 @@ namespace meteor::cc
 			}
 
 			return (boost::format(u8"Func<%1%, (%2%)>") % m_returnType->name() % params).str();
+		}
+
+		[[nodiscard]]
+		bool equals(const ITypeInfo& type) const override
+		{
+			if (const auto p = dynamic_cast<const FunctionTypeInfo*>(&type))
+			{
+				return *m_returnType == *p->m_returnType &&
+					std::equal(
+						std::begin(m_parameterTypes),
+						std::end(m_parameterTypes),
+						std::begin(p->m_parameterTypes),
+						std::end(p->m_parameterTypes),
+						[](const auto& a, const auto& b)
+						{
+							return *a == *b;
+						});
+			}
+
+			return false;
 		}
 
 	private:
@@ -137,6 +173,17 @@ namespace meteor::cc
 				default:
 					return "?";
 			}
+		}
+
+		[[nodiscard]]
+		bool equals(const ITypeInfo& type) const override
+		{
+			if (const auto p = dynamic_cast<const PrimitiveTypeInfo*>(&type))
+			{
+				return m_category == p->m_category && m_size == p->m_size;
+			}
+
+			return false;
 		}
 
 	private:

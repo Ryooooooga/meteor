@@ -531,6 +531,47 @@ namespace meteor::cc
 
 	// --- expression ---
 
+	class BinaryExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit BinaryExpressionNode(std::size_t line, std::unique_ptr<ExpressionNode>&& left, std::unique_ptr<ExpressionNode>&& right)
+			: ExpressionNode(line)
+		{
+			assert(left);
+			assert(right);
+
+			addChild(std::move(left));
+			addChild(std::move(right));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& left() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		ExpressionNode& right() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[1]);
+		}
+	};
+
+	// assignment-expression:
+	//     unary-expression '=' assignment-expression
+	class AssignmentExpressionNode
+		: public BinaryExpressionNode
+	{
+	public:
+		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// identifier-expression:
 	//     identifier
 	class IdentifierExpressionNode

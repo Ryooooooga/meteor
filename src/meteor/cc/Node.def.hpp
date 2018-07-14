@@ -60,6 +60,7 @@ METEOR_CC_DECLARATOR_NODE(ParameterDeclarationNode)
 METEOR_CC_DECLARATOR_NODE(IdentifierDeclaratorNode)
 METEOR_CC_DECLARATOR_NODE(FunctionDeclaratorNode)
 
+METEOR_CC_EXPRESSION_NODE(AssignmentExpressionNode)
 METEOR_CC_EXPRESSION_NODE(IdentifierExpressionNode)
 METEOR_CC_EXPRESSION_NODE(IntegerExpressionNode)
 

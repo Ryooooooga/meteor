@@ -40,10 +40,8 @@ int main()
 
 			int f(int a, int b) {
 				int c;
-				x;
-				a;
-				c;
-				(42);
+				c = a;
+				x = 42;
 			}
 
 			int main(void) {

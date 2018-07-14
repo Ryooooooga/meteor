@@ -125,6 +125,7 @@ namespace meteor::cc
 		void visit(ExpressionStatementNode& node)
 		{
 			// expression
+			m_lvalue = false;
 			node.expression().accept(*this);
 		}
 
@@ -204,21 +205,60 @@ namespace meteor::cc
 			}
 		}
 
+		// assignment-expression:
+		//     unary-expression '=' assignment-expression
+		void visit(AssignmentExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// LD GR2, GR1
+			add_LD(Register::general2, Register::general1);
+
+			// left-hand-side
+			const auto lvalue = std::exchange(m_lvalue, true);
+			node.left().accept(*this);
+			m_lvalue = lvalue;
+
+			// ST GR2, #0000, GR1
+			add_ST(Register::general2, 0x0000, Register::general1);
+		}
+
 		// identifier-expression:
 		//     identifier
 		void visit(IdentifierExpressionNode& node)
 		{
-			if (node.symbol()->isGlobal())
+			if (m_lvalue)
 			{
-				// Load the global variable.
-				// LD GR1, adr
-				add_LD(Register::general1, node.symbol()->address());
+				// Load addresses.
+				if (node.symbol()->isGlobal())
+				{
+					// Load the global variable address.
+					// LAD GR1, adr
+					add_LAD(Register::general1, node.symbol()->address());
+				}
+				else
+				{
+					// Load the local variable address.
+					// LAD GR1, adr, FP
+					add_LAD(Register::general1, node.symbol()->address(), framePointer);
+				}
 			}
 			else
 			{
-				// Load the local variable.
-				// LD GR1, adr, FP
-				add_LD(Register::general1, node.symbol()->address(), framePointer);
+				// Load values.
+				if (node.symbol()->isGlobal())
+				{
+					// Load the global variable.
+					// LD GR1, adr
+					add_LD(Register::general1, node.symbol()->address());
+				}
+				else
+				{
+					// Load the local variable.
+					// LD GR1, adr, FP
+					add_LD(Register::general1, node.symbol()->address(), framePointer);
+				}
 			}
 		}
 
@@ -249,6 +289,12 @@ namespace meteor::cc
 			m_program.emplace_back(word);
 		}
 
+		// LD r1, r2
+		void add_LD(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::ld_r, r1, r2));
+		}
+
 		// LD r, adr, x
 		void add_LD(Register r, Word adr, Register x = Register::general0)
 		{
@@ -260,6 +306,13 @@ namespace meteor::cc
 		void add_LAD(Register r, Word adr, Register x = Register::general0)
 		{
 			addWord(operations::instruction(operations::lad, r, x));
+			addWord(adr);
+		}
+
+		// ST r, adr, x
+		void add_ST(Register r, Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::st, r, x));
 			addWord(adr);
 		}
 
@@ -279,6 +332,7 @@ namespace meteor::cc
 		std::vector<Word> m_program;
 		bool m_isLocal;
 		bool m_parameters;
+		bool m_lvalue;
 		Word m_locals;
 	};
 }

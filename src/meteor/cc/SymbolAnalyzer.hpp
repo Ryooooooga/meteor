@@ -238,6 +238,30 @@ namespace meteor::cc
 			node.declarator().accept(*this);
 		}
 
+		// assignment-expression:
+		//     unary-expression '=' assignment-expression
+		void visit(AssignmentExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+
+			if (!node.left().isLvalue())
+			{
+				reportError(node, u8"rvalue expression is not assignable.");
+			}
+
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo())
+			{
+				reportError(node, u8"incompatible type.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, node.right().typeInfo(), false);
+		}
+
 		// identifier-expression:
 		//     identifier
 		void visit(IdentifierExpressionNode& node)
@@ -247,6 +271,7 @@ namespace meteor::cc
 			{
 				node.symbol({}, symbol);
 
+				// Resolve the type.
 				node.typeInfo({}, symbol->typeInfo(), true);
 			}
 			else

@@ -341,7 +341,7 @@ namespace meteor::cc
 
 		// assignment-expression:
 		//     unary-expression
-		//     unary-expression {assignment-operator logical-or-expression}*
+		//     unary-expression assignment-operator assignment-expression
 		// assignment-operator:
 		//     '='
 		[[nodiscard]]
@@ -350,9 +350,29 @@ namespace meteor::cc
 			// unary-expression
 			auto expression = parseUnaryExpression();
 
-			// TODO: {assignment-operator logical-or-expression}*
+			//  assignment-operator assignment-expression
+			switch (peekToken()->kind())
+			{
+				case TokenKind::assign:
+					// '=' assignment-expression
+					return parseAssignAssignmentExpression(std::move(expression));
 
-			return expression;
+				default:
+					return expression;
+			}
+		}
+
+		// '=' assignment-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAssignAssignmentExpression(std::unique_ptr<ExpressionNode>&& left)
+		{
+			// '='
+			const auto token = matchToken(TokenKind::assign);
+
+			// assignment-expression
+			auto right = parseAssignmentExpression();
+
+			return std::make_unique<AssignmentExpressionNode>(token->line(), std::move(left), std::move(right));
 		}
 
 		// unary-expression:

@@ -133,10 +133,19 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(AssignmentExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"AssignmentExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"AssignmentExpressionNode");
+			visitChildren(node);
+		}
+
 		void visit(IdentifierExpressionNode& node)
 		{
 			if (node.typeInfo())
-				write(u8"IdentifierExpressionNode `%1%' <%2%>", node.name(), node.typeInfo()->name());
+				write(u8"IdentifierExpressionNode `%1%' <%2% : %3%>", node.name(), node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
 			else
 				write(u8"IdentifierExpressionNode `%1%'", node.name());
 			visitChildren(node);
@@ -145,7 +154,7 @@ namespace meteor::cc
 		void visit(IntegerExpressionNode& node)
 		{
 			if (node.typeInfo())
-				write(u8"IntegerExpressionNode #%1$04X <%2%>", node.value(), node.typeInfo()->name());
+				write(u8"IntegerExpressionNode #%1$04X <%2% : %3%>", node.value(), node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
 			else
 				write(u8"IntegerExpressionNode #%1$04X", node.value());
 			visitChildren(node);
