@@ -142,6 +142,15 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(IntegerExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"IntegerExpressionNode #%1$04X <%2%>", node.value(), node.typeInfo()->name());
+			else
+				write(u8"IntegerExpressionNode #%1$04X", node.value());
+			visitChildren(node);
+		}
+
 		void visit(IntegerTypeNode& node)
 		{
 			if (node.typeInfo())

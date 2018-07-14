@@ -558,6 +558,48 @@ namespace meteor::cc
 		std::shared_ptr<Symbol> m_symbol;
 	};
 
+	// integer-expression:
+	//     integer-literal
+	class IntegerExpressionNode
+		: public ExpressionNode
+	{
+	public:
+		explicit IntegerExpressionNode(std::size_t line, Word value)
+			: ExpressionNode(line)
+			, m_value(value)
+			, m_typeInfo(nullptr)
+		{
+		}
+
+		[[nodiscard]]
+		Word value() const noexcept
+		{
+			return m_value;
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept override
+		{
+			return m_typeInfo;
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+
+		void typeInfo(Passkey<SymbolAnalyzer>, const std::shared_ptr<ITypeInfo>& typeInfo)
+		{
+			assert(typeInfo);
+
+			m_typeInfo = typeInfo;
+		}
+
+	private:
+		Word m_value;
+		std::shared_ptr<ITypeInfo> m_typeInfo;
+	};
+
 	// --- type ---
 
 	// integer-type:

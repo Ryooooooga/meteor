@@ -61,6 +61,7 @@ METEOR_CC_DECLARATOR_NODE(IdentifierDeclaratorNode)
 METEOR_CC_DECLARATOR_NODE(FunctionDeclaratorNode)
 
 METEOR_CC_EXPRESSION_NODE(IdentifierExpressionNode)
+METEOR_CC_EXPRESSION_NODE(IntegerExpressionNode)
 
 METEOR_CC_TYPE_NODE(IntegerTypeNode)
 

@@ -328,6 +328,8 @@ namespace meteor::cc
 
 		// primary-expression:
 		//     TODO:
+		//     identifier-expression
+		//     integer-expression
 		[[nodiscard]]
 		std::unique_ptr<ExpressionNode> parsePrimaryExpression()
 		{
@@ -336,6 +338,10 @@ namespace meteor::cc
 				case TokenKind::identifier:
 					// identifier-expression
 					return parseIdentifierExpression();
+
+				case TokenKind::integerLiteral:
+					// integer-expression
+					return parseIntegerExpression();
 
 				default:
 					// error
@@ -352,6 +358,17 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::identifier);
 
 			return std::make_unique<IdentifierExpressionNode>(token->line(), token->text());
+		}
+
+		// integer-expression:
+		//     integer-literal
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseIntegerExpression()
+		{
+			// integer-literal
+			const auto token = matchToken(TokenKind::integerLiteral);
+
+			return std::make_unique<IntegerExpressionNode>(token->line(), token->integer());
 		}
 
 		// --- type ---

@@ -222,6 +222,14 @@ namespace meteor::cc
 			}
 		}
 
+		// integer-expression:
+		//     integer-literal
+		void visit(IntegerExpressionNode& node)
+		{
+			// LAD GR1, value
+			add_LAD(Register::general1, node.value());
+		}
+
 		// integer-type:
 		//     'int'
 		void visit([[maybe_unused]] IntegerTypeNode& node)

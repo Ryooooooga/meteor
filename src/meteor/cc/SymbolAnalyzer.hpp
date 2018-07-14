@@ -253,11 +253,19 @@ namespace meteor::cc
 			}
 		}
 
+		// integer-expression:
+		//     integer-literal
+		void visit(IntegerExpressionNode& node)
+		{
+			// Resolve the type.
+			node.typeInfo({}, m_intType);
+		}
+
 		// integer-type:
 		//     'int'
 		void visit(IntegerTypeNode& node)
 		{
-			m_baseType = std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, 1);
+			m_baseType = m_intType;
 
 			node.typeInfo({}, m_baseType);
 		}
@@ -272,6 +280,7 @@ namespace meteor::cc
 		std::string_view m_name;
 		std::shared_ptr<Scope> m_scope;
 		std::shared_ptr<ITypeInfo> m_baseType;
+		std::shared_ptr<ITypeInfo> m_intType = std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, 1);
 		bool m_registerParams;
 	};
 }
