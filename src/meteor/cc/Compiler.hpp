@@ -67,6 +67,9 @@ namespace meteor::cc
 			// LAD GR0, #0000
 			add_LAD(Register::general0, 0x0000);
 
+			// Set frame pointer.
+			const auto fp = add_LAD(framePointer);
+
 			// Call main.
 			// CALL ?
 			const auto mainAddress = add_CALL();
@@ -92,6 +95,7 @@ namespace meteor::cc
 				throw std::runtime_error(std::string {node.filename()} + u8": function `main' is not defined.");
 			}
 
+			m_program[fp] = position();
 			m_program[mainAddress] = m_main->address();
 		}
 
@@ -486,6 +490,15 @@ namespace meteor::cc
 		{
 			addWord(operations::instruction(operations::lad, r, x));
 			addWord(adr);
+		}
+
+		// LAD r, ?, x
+		[[nodiscard]]
+		Word add_LAD(Register r, Register x = Register::general0)
+		{
+			add_LAD(r, 0xffff, x);
+
+			return position() - 1;
 		}
 
 		// ST r, adr, x

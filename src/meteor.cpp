@@ -71,12 +71,13 @@ int main()
 
 		std::size_t steps = 0;
 
-		while (steps++ < 100 && processor.step())
+		while (steps++ < 1000 && processor.step())
 		{
 		}
 
 		std::cout << "steps: " << steps << std::endl;
 		memory->dump(std::cout, 0x0000, 0x0030);
+		// processor.dumpRegisters(std::cout);
 	}
 	catch (const std::exception& e)
 	{
