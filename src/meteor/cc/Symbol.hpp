@@ -27,14 +27,21 @@
 #include <string>
 #include <string_view>
 
+#include "../util/Passkey.hpp"
+
 namespace meteor::cc
 {
+	class SymbolAnalyzer;
+	class ITypeInfo;
+
 	class Symbol
 	{
 	public:
-		explicit Symbol(std::string_view name)
+		explicit Symbol(std::string_view name, const std::shared_ptr<ITypeInfo>& typeInfo)
 			: m_name(name)
+			, m_typeInfo(typeInfo)
 		{
+			assert(m_typeInfo);
 		}
 
 		// Uncopyable, unmovable.
@@ -52,7 +59,14 @@ namespace meteor::cc
 			return m_name;
 		}
 
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept
+		{
+			return m_typeInfo;
+		}
+
 	private:
 		std::string m_name;
+		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 }

@@ -28,6 +28,7 @@
 
 #include "Node.hpp"
 #include "Scope.hpp"
+#include "TypeInfo.hpp"
 
 namespace meteor::cc
 {
@@ -126,6 +127,8 @@ namespace meteor::cc
 			// type
 			node.typeSpecifier().accept(*this);
 
+			m_baseType = node.typeSpecifier().typeInfo();
+
 			// declarator
 			node.declarator().accept(*this);
 
@@ -161,10 +164,10 @@ namespace meteor::cc
 			// type
 			node.typeSpecifier().accept(*this);
 
+			m_baseType = node.typeSpecifier().typeInfo();
+
 			// declarator
 			node.declarator().accept(*this);
-
-			node.symbol({}, node.declarator().symbol());
 
 			// Register the symbol.
 			if (!m_scope->tryRegister(node.symbol()))
@@ -180,6 +183,8 @@ namespace meteor::cc
 			// type
 			node.typeSpecifier().accept(*this);
 
+			m_baseType = node.typeSpecifier().typeInfo();
+
 			// declarator
 			node.declarator().accept(*this);
 
@@ -193,10 +198,6 @@ namespace meteor::cc
 
 				m_registerParams = false;
 			}
-			else
-			{
-				node.symbol({}, node.declarator().symbol());
-			}
 		}
 
 		// identifier-declarator:
@@ -204,18 +205,31 @@ namespace meteor::cc
 		void visit(IdentifierDeclaratorNode& node)
 		{
 			// Set the symbol.
-			node.symbol({}, std::make_shared<Symbol>(node.name()));
+			if (node.symbol() == nullptr)
+			{
+				node.symbol({}, std::make_shared<Symbol>(node.name(), m_baseType));
+			}
 		}
 
 		// function-declarator:
 		//     direct-declarator parameter-list
 		void visit(FunctionDeclaratorNode& node)
 		{
-			// declarator
-			node.declarator().accept(*this);
-
 			// parameter-list
 			node.parameters().accept(*this);
+
+			// Build the function type.
+			std::vector<std::shared_ptr<ITypeInfo>> paramTypes;
+
+			for (const auto& param : node.parameters().children())
+			{
+				paramTypes.emplace_back(static_cast<DeclarationNode&>(*param).symbol()->typeInfo());
+			}
+
+			m_baseType = std::make_shared<FunctionTypeInfo>(m_baseType, std::move(paramTypes));
+
+			// declarator
+			node.declarator().accept(*this);
 		}
 
 		// identifier-expression:
@@ -235,8 +249,11 @@ namespace meteor::cc
 
 		// integer-type:
 		//     'int'
-		void visit([[maybe_unused]] IntegerTypeNode& node)
+		void visit(IntegerTypeNode& node)
 		{
+			m_baseType = std::make_shared<PrimitiveTypeInfo>(TypeCategory::integer, 1);
+
+			node.typeInfo({}, m_baseType);
 		}
 
 		template <typename Message>
@@ -248,6 +265,7 @@ namespace meteor::cc
 
 		std::string_view m_name;
 		std::shared_ptr<Scope> m_scope;
+		std::shared_ptr<ITypeInfo> m_baseType;
 		bool m_registerParams;
 	};
 }

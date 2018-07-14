@@ -28,14 +28,13 @@
 #include <memory>
 #include <vector>
 
-#include <boost/format.hpp>
-
 #include "../util/Passkey.hpp"
 
 namespace meteor::cc
 {
 	class Symbol;
 	class Scope;
+	class ITypeInfo;
 
 	class Parser;
 	class SymbolAnalyzer;
@@ -108,6 +107,9 @@ namespace meteor::cc
 	{
 	public:
 		using StatementNode::StatementNode;
+
+		[[nodiscard]]
+		virtual std::shared_ptr<Symbol> symbol() const =0;
 	};
 
 	class DeclaratorNode
@@ -132,6 +134,9 @@ namespace meteor::cc
 	{
 	public:
 		using Node::Node;
+
+		[[nodiscard]]
+		virtual std::shared_ptr<ITypeInfo> typeInfo() const =0;
 	};
 
 	// root:
@@ -296,6 +301,12 @@ namespace meteor::cc
 			return static_cast<StatementNode&>(*children()[2]);
 		}
 
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const override
+		{
+			return declarator().symbol();
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
@@ -320,7 +331,6 @@ namespace meteor::cc
 	public:
 		explicit VariableDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
 			: DeclarationNode(line)
-			, m_symbol(nullptr)
 		{
 			assert(typeSpecifier);
 			assert(declarator);
@@ -342,25 +352,15 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
-		std::shared_ptr<Symbol> symbol() const noexcept
+		std::shared_ptr<Symbol> symbol() const override
 		{
-			return m_symbol;
+			return declarator().symbol();
 		}
 
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
-
-		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
-		{
-			assert(symbol);
-
-			m_symbol = symbol;
-		}
-
-	private:
-		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// parameter-declaration:
@@ -371,7 +371,6 @@ namespace meteor::cc
 	public:
 		explicit ParameterDeclarationNode(std::size_t line, std::unique_ptr<TypeNode>&& typeSpecifier, std::unique_ptr<DeclaratorNode>&& declarator)
 			: DeclarationNode(line)
-			, m_symbol(nullptr)
 		{
 			assert(typeSpecifier);
 			assert(declarator);
@@ -393,25 +392,15 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
-		std::shared_ptr<Symbol> symbol() const noexcept
+		std::shared_ptr<Symbol> symbol() const override
 		{
-			return m_symbol;
+			return declarator().symbol();
 		}
 
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
-
-		void symbol(Passkey<SymbolAnalyzer>, const std::shared_ptr<Symbol>& symbol)
-		{
-			assert(symbol);
-
-			m_symbol = symbol;
-		}
-
-	private:
-		std::shared_ptr<Symbol> m_symbol;
 	};
 
 	// --- declarator ---
@@ -574,132 +563,25 @@ namespace meteor::cc
 	public:
 		using TypeNode::TypeNode;
 
+		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> typeInfo() const noexcept override
+		{
+			return m_typeInfo;
+		}
+
 		void accept(IVisitor& visitor) override
 		{
 			visitor.visit(*this);
 		}
-	};
 
-	// Node printer.
-	class Printer
-		: private IVisitor
-	{
-	public:
-		explicit Printer(std::ostream& stream)
-			: Printer(stream, 0) {}
-
-		// Uncopyable, unmovable.
-		Printer(const Printer&) =delete;
-		Printer(Printer&&) =delete;
-
-		Printer& operator=(const Printer&) =delete;
-		Printer& operator=(Printer&&) =delete;
-
-		~Printer() =default;
-
-		void print(Node& node)
+		void typeInfo(Passkey<SymbolAnalyzer>, const std::shared_ptr<ITypeInfo>& typeInfo)
 		{
-			node.accept(*this);
+			assert(typeInfo);
+
+			m_typeInfo = typeInfo;
 		}
 
 	private:
-		explicit Printer(std::ostream& stream, std::size_t depth)
-			: m_stream(stream), m_depth(depth) {}
-
-		void visit(RootNode& node)
-		{
-			write(u8"RootNode %1%", node.filename());
-			visitChildren(node);
-		}
-
-		void visit(ParameterListNode& node)
-		{
-			write(u8"ParameterListNode");
-			visitChildren(node);
-		}
-
-		void visit(EmptyStatementNode& node)
-		{
-			write(u8"EmptyStatementNode");
-			visitChildren(node);
-		}
-
-		void visit(CompoundStatementNode& node)
-		{
-			write(u8"CompoundStatementNode");
-			visitChildren(node);
-		}
-
-		void visit(ExpressionStatementNode& node)
-		{
-			write(u8"ExpressionStatementNode");
-			visitChildren(node);
-		}
-
-		void visit(FunctionDeclarationNode& node)
-		{
-			write(u8"FunctionDeclarationNode");
-			visitChildren(node);
-		}
-
-		void visit(VariableDeclarationNode& node)
-		{
-			write(u8"VariableDeclarationNode");
-			visitChildren(node);
-		}
-
-		void visit(ParameterDeclarationNode& node)
-		{
-			write(u8"ParameterDeclarationNode");
-			visitChildren(node);
-		}
-
-		void visit(IdentifierDeclaratorNode& node)
-		{
-			write(u8"IdentifierDeclaratorNode `%1%'", node.name());
-			visitChildren(node);
-		}
-
-		void visit(FunctionDeclaratorNode& node)
-		{
-			write(u8"FunctionDeclaratorNode");
-			visitChildren(node);
-		}
-
-		void visit(IdentifierExpressionNode& node)
-		{
-			write(u8"IdentifierExpressionNode `%1%'", node.name());
-			visitChildren(node);
-		}
-
-		void visit(IntegerTypeNode& node)
-		{
-			write(u8"IntegerTypeNode");
-			visitChildren(node);
-		}
-
-		void visitChildren(Node& node)
-		{
-			Printer printer { m_stream, m_depth + 1 };
-
-			for (const auto& child : node.children())
-			{
-				child->accept(printer);
-			}
-		}
-
-		template <typename... Args>
-		void write(const std::string& format, Args&&... args)
-		{
-			for (std::size_t i = 0; i < m_depth; i++)
-			{
-				m_stream << u8"    ";
-			}
-
-			m_stream << (boost::format(format) % ... % std::forward<Args>(args)) << std::endl;
-		}
-
-		std::ostream& m_stream;
-		std::size_t m_depth;
+		std::shared_ptr<ITypeInfo> m_typeInfo;
 	};
 }

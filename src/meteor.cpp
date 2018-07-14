@@ -22,7 +22,7 @@
  * SOFTWARE.
 ================================================================================*/
 
-// #include "meteor/cc/Compiler.hpp"
+#include "meteor/cc/Printer.hpp"
 #include "meteor/cc/Parser.hpp"
 #include "meteor/cc/SymbolAnalyzer.hpp"
 
