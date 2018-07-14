@@ -112,6 +112,29 @@ namespace meteor::cc
 			m_scope = m_scope->parentScope();
 		}
 
+		// if-statement:
+		//     'if' paren-expression compound-statement
+		//     'if' paren-expression compound-statement 'else' compound-statement
+		void visit(IfStatementNode& node)
+		{
+			// condition
+			node.condition().accept(*this);
+
+			if (node.condition().typeInfo()->category() != TypeCategory::integer)
+			{
+				reportError(node.condition(), u8"condition of if statement must have type of 'int'.");
+			}
+
+			// then
+			node.then().accept(*this);
+
+			// else
+			if (const auto otherwise = node.otherwise())
+			{
+				otherwise->accept(*this);
+			}
+		}
+
 		// expression-statement:
 		//     expression ';'
 		void visit(ExpressionStatementNode& node)

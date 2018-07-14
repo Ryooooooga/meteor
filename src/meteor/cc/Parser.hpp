@@ -76,6 +76,7 @@ namespace meteor::cc
 		// statement:
 		//     empty-statement
 		//     compound-statement
+		//     if-statement
 		//     variable-statement
 		//     expression-statement
 		[[nodiscard]]
@@ -90,6 +91,10 @@ namespace meteor::cc
 				case TokenKind::leftBrace:
 					// compound-statement
 					return parseCompoundStatement();
+
+				case TokenKind::keyword_if:
+					// if-statement
+					return parseIfStatement();
 
 				case TokenKind::keyword_int:
 					// variable-declaration
@@ -133,6 +138,33 @@ namespace meteor::cc
 			matchToken(TokenKind::rightBrace);
 
 			return node;
+		}
+
+		// if-statement:
+		//     'if' paren-expression compound-statement
+		//     'if' paren-expression compound-statement 'else' compound-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseIfStatement()
+		{
+			// 'if'
+			const auto token = matchToken(TokenKind::keyword_if);
+
+			// paren-expression
+			auto condition = parseParenExpression();
+
+			// compound-statement
+			auto then = parseCompoundStatement();
+
+			// 'else'?
+			if (!consumeTokenIf(TokenKind::keyword_else))
+			{
+				return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), nullptr);
+			}
+
+			// compound-statement
+			auto otherwise = parseCompoundStatement();
+
+			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
 		}
 
 		// expression-statement:
@@ -342,6 +374,7 @@ namespace meteor::cc
 		// assignment-expression:
 		//     unary-expression
 		//     unary-expression assignment-operator assignment-expression
+		//     logical-or-expression
 		// assignment-operator:
 		//     '='
 		[[nodiscard]]
@@ -356,6 +389,8 @@ namespace meteor::cc
 				case TokenKind::assign:
 					// '=' assignment-expression
 					return parseAssignAssignmentExpression(std::move(expression));
+
+				// TODO: logical-or-expression
 
 				default:
 					return expression;

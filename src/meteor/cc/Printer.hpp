@@ -82,6 +82,12 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(IfStatementNode& node)
+		{
+			write(u8"IfStatementNode");
+			visitChildren(node);
+		}
+
 		void visit(ExpressionStatementNode& node)
 		{
 			write(u8"ExpressionStatementNode");
@@ -193,7 +199,10 @@ namespace meteor::cc
 
 			for (const auto& child : node.children())
 			{
-				child->accept(printer);
+				if (child)
+				{
+					child->accept(printer);
+				}
 			}
 		}
 

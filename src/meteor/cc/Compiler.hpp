@@ -130,6 +130,51 @@ namespace meteor::cc
 			m_locals = localsSaved;
 		}
 
+		// if-statement:
+		//     'if' paren-expression compound-statement
+		//     'if' paren-expression compound-statement 'else' compound-statement
+		void visit(IfStatementNode& node)
+		{
+			// condition
+			m_lvalue = false;
+			node.condition().accept(*this);
+
+			// CPA GR1, #0000
+			add_CPA(Register::general1, 0x0000);
+
+			if (const auto otherwise = node.otherwise())
+			{
+				// JZE .else
+				const auto elseLabel = add_JZE();
+
+				// then
+				node.then().accept(*this);
+
+				// JUMP .endif
+				const auto endIfLabel = add_JUMP();
+
+				// .else
+				m_program[elseLabel] = position();
+
+				// else
+				otherwise->accept(*this);
+
+				// .endif
+				m_program[endIfLabel] = position();
+			}
+			else
+			{
+				// JZE .endif
+				const auto endIfLabel = add_JZE();
+
+				// then
+				node.then().accept(*this);
+
+				// .endif
+				m_program[endIfLabel] = position();
+			}
+		}
+
 		// expression-statement:
 		//     expression ';'
 		void visit(ExpressionStatementNode& node)
@@ -358,6 +403,45 @@ namespace meteor::cc
 		void add_SUBA(Register r1, Register r2)
 		{
 			addWord(operations::instruction(operations::suba_r, r1, r2));
+		}
+
+		// CPA r, adr, x
+		void add_CPA(Register r, Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::cpa_adr, r, x));
+			addWord(adr);
+		}
+
+		// JZE adr, x
+		void add_JZE(Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::jze, Register::general0, x));
+			addWord(adr);
+		}
+
+		// JZE ?, x
+		[[nodiscard]]
+		Word add_JZE(Register x = Register::general0)
+		{
+			add_JZE(0xffff, x);
+
+			return position() - 1;
+		}
+
+		// JUMP adr, x
+		void add_JUMP(Word adr, Register x = Register::general0)
+		{
+			addWord(operations::instruction(operations::jump, Register::general0, x));
+			addWord(adr);
+		}
+
+		// JUMP ?, x
+		[[nodiscard]]
+		Word add_JUMP(Register x = Register::general0)
+		{
+			add_JUMP(0xffff, x);
+
+			return position() - 1;
 		}
 
 		// CALL adr, x

@@ -256,6 +256,47 @@ namespace meteor::cc
 		std::shared_ptr<Scope> m_scope;
 	};
 
+	// if-statement:
+	//     'if' paren-expression compound-statement
+	//     'if' paren-expression compound-statement 'else' compound-statement
+	class IfStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit IfStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& then, std::unique_ptr<StatementNode>&& otherwise)
+			: StatementNode(line)
+		{
+			assert(condition);
+
+			addChild(std::move(condition));
+			addChild(std::move(then));
+			addChild(std::move(otherwise));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& condition() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		StatementNode& then() const noexcept
+		{
+			return static_cast<StatementNode&>(*children()[1]);
+		}
+
+		[[nodiscard]]
+		StatementNode* otherwise() const noexcept
+		{
+			return static_cast<StatementNode*>(children()[2].get());
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// expression-statement:
 	//     expression ';'
 	class ExpressionStatementNode

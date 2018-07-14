@@ -38,6 +38,8 @@ int main()
 		constexpr char source[] = u8R"(
 			int x;
 			int y;
+			int z;
+			int w;
 
 			int f(int a, int b) {
 				int c;
@@ -46,9 +48,18 @@ int main()
 			}
 
 			int main(void) {
-				x = +10;
-				y = -+10;
-				f;
+				x = 1;
+
+				if (x) {
+					y = 2;
+				}
+
+				if (x) {
+					z = 3;
+				}
+				else {
+					w = 4;
+				}
 			}
 		)";
 
