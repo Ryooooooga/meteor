@@ -74,9 +74,7 @@ namespace meteor::cc
 			// CALL ?
 			const auto mainAddress = add_CALL();
 
-			// Exit with status `0`.
-			// LAD GR1, #0000
-			add_LAD(Register::general1, 0x0000);
+			// Exit with return value.
 			// SVC #0001
 			add_SVC(0x0001);
 
@@ -197,6 +195,33 @@ namespace meteor::cc
 			}
 		}
 
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		void visit(WhileStatementNode& node)
+		{
+			// .startwhile
+			const Word startPos = position();
+
+			// condition
+			m_lvalue = false;
+			node.condition().accept(*this);
+
+			// CPA GR1, #0000
+			add_CPA(Register::general1, 0x0000);
+
+			// JZE .endwhile
+			const Word endWhileLabel = add_JZE();
+
+			// body
+			node.body().accept(*this);
+
+			// JUMP .startwhile
+			add_JUMP(startPos);
+
+			// .endwhile
+			m_program[endWhileLabel] = position();
+		}
+
 		// return-statement:
 		//     'return' expression? ';'
 		void visit(ReturnStatementNode& node)
@@ -283,6 +308,14 @@ namespace meteor::cc
 		//     identifier
 		void visit([[maybe_unused]] IdentifierDeclaratorNode& node)
 		{
+		}
+
+		// pointer-declarator:
+		//     '*' direct-declarator
+		void visit(PointerDeclaratorNode& node)
+		{
+			// direct-declarator
+			node.declarator().accept(*this);
 		}
 
 		// function-declarator:
@@ -381,6 +414,32 @@ namespace meteor::cc
 			add_LAD(Register::general1, 0x0000);
 			// SUBA GR1, GR2
 			add_SUBA(Register::general1, Register::general2);
+		}
+
+		// address-expression:
+		//     '&' unary-expression
+		void visit(AddressExpressionNode& node)
+		{
+			// operand
+			const auto lvalueSaved = std::exchange(m_lvalue, true);
+			node.operand().accept(*this);
+			m_lvalue = lvalueSaved;
+		}
+
+		// dereference-expression:
+		//     '*' unary-expression
+		void visit(DereferenceExpressionNode& node)
+		{
+			// operand
+			const auto lvalueSaved = std::exchange(m_lvalue, false);
+			node.operand().accept(*this);
+			m_lvalue = lvalueSaved;
+
+			if (!m_lvalue)
+			{
+				// rvalue
+				add_LD(Register::general1, 0x0000, Register::general1);
+			}
 		}
 
 		// call-expression:

@@ -297,6 +297,40 @@ namespace meteor::cc
 		}
 	};
 
+	// while-statement:
+	//     'while' paren-expression compound-statement
+	class WhileStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit WhileStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& body)
+			: StatementNode(line)
+		{
+			assert(condition);
+			assert(body);
+
+			addChild(std::move(condition));
+			addChild(std::move(body));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& condition() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		StatementNode& body() const noexcept
+		{
+			return static_cast<StatementNode&>(*children()[1]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// return-statement:
 	//     'return' expression? ';'
 	class ReturnStatementNode
@@ -532,6 +566,38 @@ namespace meteor::cc
 		std::shared_ptr<Symbol> m_symbol;
 	};
 
+	// pointer-declarator:
+	//     '*' direct-declarator
+	class PointerDeclaratorNode
+		: public DeclaratorNode
+	{
+	public:
+		explicit PointerDeclaratorNode(std::size_t line, std::unique_ptr<DeclaratorNode>&& declarator)
+			: DeclaratorNode(line)
+		{
+			assert(declarator);
+
+			addChild(std::move(declarator));
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const override
+		{
+			return declarator().symbol();
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// parameter-list:
 	//     '(' 'void' ')'
 	//     '(' parameter-declaration {',' parameter-declaration}* ')'
@@ -701,6 +767,34 @@ namespace meteor::cc
 	// minus-expression:
 	//     '-' unary-expression
 	class MinusExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// address-expression:
+	//     '&' unary-expression
+	class AddressExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// dereference-expression:
+	//     '*' unary-expression
+	class DereferenceExpressionNode
 		: public UnaryExpressionNode
 	{
 	public:

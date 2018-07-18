@@ -94,6 +94,12 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(WhileStatementNode& node)
+		{
+			write(u8"WhileStatementNode");
+			visitChildren(node);
+		}
+
 		void visit(ReturnStatementNode& node)
 		{
 			write(u8"ReturnStatementNode");
@@ -139,6 +145,15 @@ namespace meteor::cc
 				write(u8"IdentifierDeclaratorNode `%1%' <%2%>", node.name(), node.symbol()->typeInfo()->name());
 			else
 				write(u8"IdentifierDeclaratorNode `%1%' <?>", node.name());
+			visitChildren(node);
+		}
+
+		void visit(PointerDeclaratorNode& node)
+		{
+			if (node.symbol())
+				write(u8"PointerDeclaratorNode <%1%>", node.symbol()->typeInfo()->name());
+			else
+				write(u8"PointerDeclaratorNode <?>");
 			visitChildren(node);
 		}
 
@@ -193,6 +208,24 @@ namespace meteor::cc
 				write(u8"MinusExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
 			else
 				write(u8"MinusExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(AddressExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"AddressExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"AddressExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(DereferenceExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"DereferenceExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"DereferenceExpressionNode");
 			visitChildren(node);
 		}
 

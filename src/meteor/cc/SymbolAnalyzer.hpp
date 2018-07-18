@@ -147,6 +147,23 @@ namespace meteor::cc
 			}
 		}
 
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		//     'while' paren-expression compound-statement 'else' compound-statement
+		void visit(WhileStatementNode& node)
+		{
+			// condition
+			node.condition().accept(*this);
+
+			if (node.condition().typeInfo()->category() != TypeCategory::integer)
+			{
+				reportError(node.condition(), u8"condition of while statement must have type of 'int'.");
+			}
+
+			// body
+			node.body().accept(*this);
+		}
+
 		// return-statement:
 		//     'return' expression? ';'
 		void visit(ReturnStatementNode& node)
@@ -273,6 +290,17 @@ namespace meteor::cc
 			}
 		}
 
+		// pointer-declarator:
+		//     '*' direct-declarator
+		void visit(PointerDeclaratorNode& node)
+		{
+			// pointer type
+			m_baseType = std::make_shared<PointerTypeInfo>(m_baseType);
+
+			// declarator
+			node.declarator().accept(*this);
+		}
+
 		// function-declarator:
 		//     direct-declarator parameter-list
 		void visit(FunctionDeclaratorNode& node)
@@ -386,6 +414,33 @@ namespace meteor::cc
 
 			// Resolve the type.
 			node.typeInfo({}, m_intType, false);
+		}
+
+		// address-expression:
+		//     '&' unary-expression
+		void visit(AddressExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			// Resolve the type.
+			node.typeInfo({}, std::make_shared<PointerTypeInfo>(node.operand().typeInfo()), false);
+		}
+
+		// derefenrece-expression:
+		//     '*' unary-expression
+		void visit(DereferenceExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			if (node.operand().typeInfo()->category() != TypeCategory::pointer)
+			{
+				reportError(node, u8"operand of unary operator '*' must have a pointer type.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, std::static_pointer_cast<PointerTypeInfo>(node.operand().typeInfo())->baseType(), true);
 		}
 
 		// call-expression:

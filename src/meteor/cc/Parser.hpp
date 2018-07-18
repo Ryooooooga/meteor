@@ -96,6 +96,10 @@ namespace meteor::cc
 					// if-statement
 					return parseIfStatement();
 
+				case TokenKind::keyword_while:
+					// while-statement
+					return parseWhileStatement();
+
 				case TokenKind::keyword_return:
 					// return-statement
 					return parseReturnStatement();
@@ -169,6 +173,23 @@ namespace meteor::cc
 			auto otherwise = parseCompoundStatement();
 
 			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
+		}
+
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseWhileStatement()
+		{
+			// 'while'
+			const auto token = matchToken(TokenKind::keyword_while);
+
+			// paren-expression
+			auto condition = parseParenExpression();
+
+			// compound-statement
+			auto body = parseCompoundStatement();
+
+			return std::make_unique<WhileStatementNode>(token->line(), std::move(condition), std::move(body));
 		}
 
 		// return-statement:
@@ -316,11 +337,24 @@ namespace meteor::cc
 
 		// primary-declarator:
 		//     identifier-declarator
+		//     pointer-declarator
 		[[nodiscard]]
 		std::unique_ptr<DeclaratorNode> parsePrimaryDeclarator()
 		{
-			// identifier-declarator
-			return parseIdentifierDeclarator();
+			switch (peekToken()->kind())
+			{
+				case TokenKind::leftParen:
+					// paren-declarator
+					return parseParenDeclarator();
+
+				case TokenKind::star:
+					// pointer-declarator
+					return parsePointerDeclarator();
+
+				default:
+					// identifier-declarator
+					return parseIdentifierDeclarator();
+			}
 		}
 
 		// function-declarator:
@@ -364,6 +398,23 @@ namespace meteor::cc
 			return node;
 		}
 
+		// paren-declarator:
+		//     '(' declarator ')'
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseParenDeclarator()
+		{
+			// '('
+			matchToken(TokenKind::leftParen);
+
+			// declarator
+			auto declarator = parseDeclarator();
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return declarator;
+		}
+
 		// identifier-declarator
 		//     identifier
 		[[nodiscard]]
@@ -373,6 +424,20 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::identifier);
 
 			return std::make_unique<IdentifierDeclaratorNode>(token->line(), token->text());
+		}
+
+		// pointer-declarator:
+		//     '*' direct-declarator
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parsePointerDeclarator()
+		{
+			// '*'
+			const auto token = matchToken(TokenKind::star);
+
+			// direct-declarator
+			auto declarator = parseDirectDeclarator();
+
+			return std::make_unique<PointerDeclaratorNode>(token->line(), std::move(declarator));
 		}
 
 		// --- expression ---
@@ -658,6 +723,14 @@ namespace meteor::cc
 					// minus-expression
 					return parseMinusExpression();
 
+				case TokenKind::ampersand:
+					// address-expression
+					return parseAddressExpression();
+
+				case TokenKind::star:
+					// dereference-expression
+					return parseDereferenceExpression();
+
 				// TODO: unary-expression
 
 				default:
@@ -692,6 +765,34 @@ namespace meteor::cc
 			auto operand = parseUnaryExpression();
 
 			return std::make_unique<MinusExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// address-expression:
+		//     '&' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAddressExpression()
+		{
+			// '&'
+			const auto token = matchToken(TokenKind::ampersand);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<AddressExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// dereference-expression:
+		//     '*' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseDereferenceExpression()
+		{
+			// '*'
+			const auto token = matchToken(TokenKind::star);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<DereferenceExpressionNode>(token->line(), std::move(operand));
 		}
 
 		// postfix-expression:
