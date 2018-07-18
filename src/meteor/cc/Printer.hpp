@@ -94,6 +94,12 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(WhileStatementNode& node)
+		{
+			write(u8"WhileStatementNode");
+			visitChildren(node);
+		}
+
 		void visit(ReturnStatementNode& node)
 		{
 			write(u8"ReturnStatementNode");

@@ -53,6 +53,7 @@ METEOR_CC_NODE(ArgumentListNode)
 METEOR_CC_STATEMENT_NODE(EmptyStatementNode)
 METEOR_CC_STATEMENT_NODE(CompoundStatementNode)
 METEOR_CC_STATEMENT_NODE(IfStatementNode)
+METEOR_CC_STATEMENT_NODE(WhileStatementNode)
 METEOR_CC_STATEMENT_NODE(ReturnStatementNode)
 METEOR_CC_STATEMENT_NODE(ExpressionStatementNode)
 

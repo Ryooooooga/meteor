@@ -147,6 +147,23 @@ namespace meteor::cc
 			}
 		}
 
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		//     'while' paren-expression compound-statement 'else' compound-statement
+		void visit(WhileStatementNode& node)
+		{
+			// condition
+			node.condition().accept(*this);
+
+			if (node.condition().typeInfo()->category() != TypeCategory::integer)
+			{
+				reportError(node.condition(), u8"condition of while statement must have type of 'int'.");
+			}
+
+			// body
+			node.body().accept(*this);
+		}
+
 		// return-statement:
 		//     'return' expression? ';'
 		void visit(ReturnStatementNode& node)

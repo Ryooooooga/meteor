@@ -74,9 +74,7 @@ namespace meteor::cc
 			// CALL ?
 			const auto mainAddress = add_CALL();
 
-			// Exit with status `0`.
-			// LAD GR1, #0000
-			add_LAD(Register::general1, 0x0000);
+			// Exit with return value.
 			// SVC #0001
 			add_SVC(0x0001);
 
@@ -195,6 +193,33 @@ namespace meteor::cc
 				// .endif
 				m_program[endIfLabel] = position();
 			}
+		}
+
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		void visit(WhileStatementNode& node)
+		{
+			// .startwhile
+			const Word startPos = position();
+
+			// condition
+			m_lvalue = false;
+			node.condition().accept(*this);
+
+			// CPA GR1, #0000
+			add_CPA(Register::general1, 0x0000);
+
+			// JZE .endwhile
+			const Word endWhileLabel = add_JZE();
+
+			// body
+			node.body().accept(*this);
+
+			// JUMP .startwhile
+			add_JUMP(startPos);
+
+			// .endwhile
+			m_program[endWhileLabel] = position();
 		}
 
 		// return-statement:

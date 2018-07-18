@@ -297,6 +297,40 @@ namespace meteor::cc
 		}
 	};
 
+	// while-statement:
+	//     'while' paren-expression compound-statement
+	class WhileStatementNode
+		: public StatementNode
+	{
+	public:
+		explicit WhileStatementNode(std::size_t line, std::unique_ptr<ExpressionNode>&& condition, std::unique_ptr<StatementNode>&& body)
+			: StatementNode(line)
+		{
+			assert(condition);
+			assert(body);
+
+			addChild(std::move(condition));
+			addChild(std::move(body));
+		}
+
+		[[nodiscard]]
+		ExpressionNode& condition() const noexcept
+		{
+			return static_cast<ExpressionNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		StatementNode& body() const noexcept
+		{
+			return static_cast<StatementNode&>(*children()[1]);
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// return-statement:
 	//     'return' expression? ';'
 	class ReturnStatementNode

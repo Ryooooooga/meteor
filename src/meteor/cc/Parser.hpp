@@ -96,6 +96,10 @@ namespace meteor::cc
 					// if-statement
 					return parseIfStatement();
 
+				case TokenKind::keyword_while:
+					// while-statement
+					return parseWhileStatement();
+
 				case TokenKind::keyword_return:
 					// return-statement
 					return parseReturnStatement();
@@ -169,6 +173,23 @@ namespace meteor::cc
 			auto otherwise = parseCompoundStatement();
 
 			return std::make_unique<IfStatementNode>(token->line(), std::move(condition), std::move(then), std::move(otherwise));
+		}
+
+		// while-statement:
+		//     'while' paren-expression compound-statement
+		[[nodiscard]]
+		std::unique_ptr<StatementNode> parseWhileStatement()
+		{
+			// 'while'
+			const auto token = matchToken(TokenKind::keyword_while);
+
+			// paren-expression
+			auto condition = parseParenExpression();
+
+			// compound-statement
+			auto body = parseCompoundStatement();
+
+			return std::make_unique<WhileStatementNode>(token->line(), std::move(condition), std::move(body));
 		}
 
 		// return-statement:
