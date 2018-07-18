@@ -723,6 +723,10 @@ namespace meteor::cc
 					// minus-expression
 					return parseMinusExpression();
 
+				case TokenKind::ampersand:
+					// address-expression
+					return parseAddressExpression();
+
 				// TODO: unary-expression
 
 				default:
@@ -757,6 +761,20 @@ namespace meteor::cc
 			auto operand = parseUnaryExpression();
 
 			return std::make_unique<MinusExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// address-expression:
+		//     '&' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseAddressExpression()
+		{
+			// '&'
+			const auto token = matchToken(TokenKind::ampersand);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<AddressExpressionNode>(token->line(), std::move(operand));
 		}
 
 		// postfix-expression:

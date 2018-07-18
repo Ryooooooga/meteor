@@ -778,6 +778,20 @@ namespace meteor::cc
 		}
 	};
 
+	// address-expression:
+	//     '&' unary-expression
+	class AddressExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// argument-list:
 	//     '(' ')'
 	//     '(' assignment-expression {',' assignment-expression}* ')'

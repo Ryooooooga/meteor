@@ -36,12 +36,17 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
-			int *f(void) {}
-			int (*g)(void) {}
-			int (*h(void)) {}
-			int *(*i)(void) {}
-
 			int main(void) {
+				int *p;
+				int a;
+				int b;
+
+				a = 10;
+				p = &a;
+				// *p = 42;
+				// b = *p;
+
+				return b;
 			}
 		)";
 

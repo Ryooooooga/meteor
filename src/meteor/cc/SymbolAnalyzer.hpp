@@ -416,6 +416,17 @@ namespace meteor::cc
 			node.typeInfo({}, m_intType, false);
 		}
 
+		// address-expression:
+		//     '&' unary-expression
+		void visit(AddressExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			// Resolve the type.
+			node.typeInfo({}, std::make_shared<PointerTypeInfo>(node.operand().typeInfo()), false);
+		}
+
 		// call-expression:
 		//     postfix-expression argument-list
 		void visit(CallExpressionNode& node)

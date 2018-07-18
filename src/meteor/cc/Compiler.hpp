@@ -416,6 +416,16 @@ namespace meteor::cc
 			add_SUBA(Register::general1, Register::general2);
 		}
 
+		// address-expression:
+		//     '&' unary-expression
+		void visit(AddressExpressionNode& node)
+		{
+			// operand
+			const auto lvalueSaved = std::exchange(m_lvalue, true);
+			node.operand().accept(*this);
+			m_lvalue = lvalueSaved;
+		}
+
 		// call-expression:
 		//     postfix-expression argument-list
 		void visit(CallExpressionNode& node)
