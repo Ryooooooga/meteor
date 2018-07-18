@@ -37,6 +37,7 @@ namespace meteor::cc
 	enum class TypeCategory
 	{
 		function,
+		pointer,
 		integer,
 	};
 
@@ -150,6 +151,49 @@ namespace meteor::cc
 	private:
 		std::shared_ptr<ITypeInfo> m_returnType;
 		std::vector<std::shared_ptr<ITypeInfo>> m_parameterTypes;
+	};
+
+	class PointerTypeInfo
+		: public ITypeInfo
+	{
+	public:
+		explicit PointerTypeInfo(const std::shared_ptr<ITypeInfo>& baseType)
+			: m_baseType(baseType)
+		{
+			assert(m_baseType);
+		}
+
+		[[nodiscard]]
+		TypeCategory category() const noexcept override
+		{
+			return TypeCategory::pointer;
+		}
+
+		[[nodiscard]]
+		Word size() const noexcept override
+		{
+			return 1;
+		}
+
+		[[nodiscard]]
+		std::string name() const override
+		{
+			return (boost::format(u8"Ptr<%1%>") % m_baseType->name()).str();
+		}
+
+		[[nodiscard]]
+		bool equals(const ITypeInfo& type) const override
+		{
+			if (const auto p = dynamic_cast<const PointerTypeInfo*>(&type))
+			{
+				return *m_baseType == *p->m_baseType;
+			}
+
+			return false;
+		}
+
+	private:
+		std::shared_ptr<ITypeInfo> m_baseType;
 	};
 
 	class PrimitiveTypeInfo

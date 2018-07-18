@@ -337,11 +337,24 @@ namespace meteor::cc
 
 		// primary-declarator:
 		//     identifier-declarator
+		//     pointer-declarator
 		[[nodiscard]]
 		std::unique_ptr<DeclaratorNode> parsePrimaryDeclarator()
 		{
-			// identifier-declarator
-			return parseIdentifierDeclarator();
+			switch (peekToken()->kind())
+			{
+				case TokenKind::leftParen:
+					// paren-declarator
+					return parseParenDeclarator();
+
+				case TokenKind::star:
+					// pointer-declarator
+					return parsePointerDeclarator();
+
+				default:
+					// identifier-declarator
+					return parseIdentifierDeclarator();
+			}
 		}
 
 		// function-declarator:
@@ -385,6 +398,23 @@ namespace meteor::cc
 			return node;
 		}
 
+		// paren-declarator:
+		//     '(' declarator ')'
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parseParenDeclarator()
+		{
+			// '('
+			matchToken(TokenKind::leftParen);
+
+			// declarator
+			auto declarator = parseDeclarator();
+
+			// ')'
+			matchToken(TokenKind::rightParen);
+
+			return declarator;
+		}
+
 		// identifier-declarator
 		//     identifier
 		[[nodiscard]]
@@ -394,6 +424,20 @@ namespace meteor::cc
 			const auto token = matchToken(TokenKind::identifier);
 
 			return std::make_unique<IdentifierDeclaratorNode>(token->line(), token->text());
+		}
+
+		// pointer-declarator:
+		//     '*' direct-declarator
+		[[nodiscard]]
+		std::unique_ptr<DeclaratorNode> parsePointerDeclarator()
+		{
+			// '*'
+			const auto token = matchToken(TokenKind::star);
+
+			// direct-declarator
+			auto declarator = parseDirectDeclarator();
+
+			return std::make_unique<PointerDeclaratorNode>(token->line(), std::move(declarator));
 		}
 
 		// --- expression ---

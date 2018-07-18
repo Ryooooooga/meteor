@@ -566,6 +566,38 @@ namespace meteor::cc
 		std::shared_ptr<Symbol> m_symbol;
 	};
 
+	// pointer-declarator:
+	//     '*' direct-declarator
+	class PointerDeclaratorNode
+		: public DeclaratorNode
+	{
+	public:
+		explicit PointerDeclaratorNode(std::size_t line, std::unique_ptr<DeclaratorNode>&& declarator)
+			: DeclaratorNode(line)
+		{
+			assert(declarator);
+
+			addChild(std::move(declarator));
+		}
+
+		[[nodiscard]]
+		DeclaratorNode& declarator() const noexcept
+		{
+			return static_cast<DeclaratorNode&>(*children()[0]);
+		}
+
+		[[nodiscard]]
+		std::shared_ptr<Symbol> symbol() const override
+		{
+			return declarator().symbol();
+		}
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// parameter-list:
 	//     '(' 'void' ')'
 	//     '(' parameter-declaration {',' parameter-declaration}* ')'

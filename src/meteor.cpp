@@ -36,21 +36,12 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
+			int *f(void) {}
+			int (*g)(void) {}
+			int (*h(void)) {}
+			int *(*i)(void) {}
+
 			int main(void) {
-				int a; a = 0;
-				int b; b = 1;
-				int n; n = 10;
-
-				while (n) {
-					int t;
-					t = a;
-					a = b;
-					b = t+b;
-
-					n = n-1;
-				}
-
-				return a;
 			}
 		)";
 

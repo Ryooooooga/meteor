@@ -148,6 +148,15 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(PointerDeclaratorNode& node)
+		{
+			if (node.symbol())
+				write(u8"PointerDeclaratorNode <%1%>", node.symbol()->typeInfo()->name());
+			else
+				write(u8"PointerDeclaratorNode <?>");
+			visitChildren(node);
+		}
+
 		void visit(FunctionDeclaratorNode& node)
 		{
 			if (node.symbol())

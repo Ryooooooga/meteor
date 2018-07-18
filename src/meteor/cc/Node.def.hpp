@@ -62,6 +62,7 @@ METEOR_CC_DECLARATOR_NODE(VariableDeclarationNode)
 METEOR_CC_DECLARATOR_NODE(ParameterDeclarationNode)
 
 METEOR_CC_DECLARATOR_NODE(IdentifierDeclaratorNode)
+METEOR_CC_DECLARATOR_NODE(PointerDeclaratorNode)
 METEOR_CC_DECLARATOR_NODE(FunctionDeclaratorNode)
 
 METEOR_CC_EXPRESSION_NODE(AssignmentExpressionNode)

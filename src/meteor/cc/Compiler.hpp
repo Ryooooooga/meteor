@@ -310,6 +310,14 @@ namespace meteor::cc
 		{
 		}
 
+		// pointer-declarator:
+		//     '*' direct-declarator
+		void visit(PointerDeclaratorNode& node)
+		{
+			// direct-declarator
+			node.declarator().accept(*this);
+		}
+
 		// function-declarator:
 		//     direct-declarator parameter-list
 		void visit(FunctionDeclaratorNode& node)

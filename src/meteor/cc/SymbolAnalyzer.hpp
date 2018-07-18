@@ -290,6 +290,17 @@ namespace meteor::cc
 			}
 		}
 
+		// pointer-declarator:
+		//     '*' direct-declarator
+		void visit(PointerDeclaratorNode& node)
+		{
+			// pointer type
+			m_baseType = std::make_shared<PointerTypeInfo>(m_baseType);
+
+			// declarator
+			node.declarator().accept(*this);
+		}
+
 		// function-declarator:
 		//     direct-declarator parameter-list
 		void visit(FunctionDeclaratorNode& node)
