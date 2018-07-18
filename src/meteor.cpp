@@ -36,6 +36,10 @@ int main()
 	try
 	{
 		constexpr char source[] = u8R"(
+			int f(void) {
+				return 42;
+			}
+
 			int main(void) {
 				int *p;
 				int a;
@@ -43,10 +47,14 @@ int main()
 
 				a = 10;
 				p = &a;
-				// *p = 42;
-				// b = *p;
+				*p = 42;
+				b = *p;
 
 				return b;
+
+				int (*g)(void);
+				g = &f;
+				return (*g)();
 			}
 		)";
 
@@ -75,7 +83,7 @@ int main()
 		}
 
 		std::cout << "steps: " << steps << std::endl;
-		memory->dump(std::cout, 0x0000, 0x0030);
+		memory->dump(std::cout, 0x0000, 0x0040);
 		// processor.dumpRegisters(std::cout);
 	}
 	catch (const std::exception& e)

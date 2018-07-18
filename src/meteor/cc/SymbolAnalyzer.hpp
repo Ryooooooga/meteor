@@ -427,6 +427,22 @@ namespace meteor::cc
 			node.typeInfo({}, std::make_shared<PointerTypeInfo>(node.operand().typeInfo()), false);
 		}
 
+		// derefenrece-expression:
+		//     '*' unary-expression
+		void visit(DereferenceExpressionNode& node)
+		{
+			// operand
+			node.operand().accept(*this);
+
+			if (node.operand().typeInfo()->category() != TypeCategory::pointer)
+			{
+				reportError(node, u8"operand of unary operator '*' must have a pointer type.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, std::static_pointer_cast<PointerTypeInfo>(node.operand().typeInfo())->baseType(), true);
+		}
+
 		// call-expression:
 		//     postfix-expression argument-list
 		void visit(CallExpressionNode& node)

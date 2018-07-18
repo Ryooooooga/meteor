@@ -170,6 +170,12 @@ namespace meteor::cc
 		}
 
 		[[nodiscard]]
+		std::shared_ptr<ITypeInfo> baseType() const noexcept
+		{
+			return m_baseType;
+		}
+
+		[[nodiscard]]
 		Word size() const noexcept override
 		{
 			return 1;

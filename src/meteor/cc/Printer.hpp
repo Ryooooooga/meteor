@@ -220,6 +220,15 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(DereferenceExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"DereferenceExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"DereferenceExpressionNode");
+			visitChildren(node);
+		}
+
 		void visit(CallExpressionNode& node)
 		{
 			if (node.typeInfo())

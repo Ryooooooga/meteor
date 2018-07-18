@@ -792,6 +792,20 @@ namespace meteor::cc
 		}
 	};
 
+	// dereference-expression:
+	//     '*' unary-expression
+	class DereferenceExpressionNode
+		: public UnaryExpressionNode
+	{
+	public:
+		using UnaryExpressionNode::UnaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// argument-list:
 	//     '(' ')'
 	//     '(' assignment-expression {',' assignment-expression}* ')'

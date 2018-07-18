@@ -426,6 +426,22 @@ namespace meteor::cc
 			m_lvalue = lvalueSaved;
 		}
 
+		// dereference-expression:
+		//     '*' unary-expression
+		void visit(DereferenceExpressionNode& node)
+		{
+			// operand
+			const auto lvalueSaved = std::exchange(m_lvalue, false);
+			node.operand().accept(*this);
+			m_lvalue = lvalueSaved;
+
+			if (!m_lvalue)
+			{
+				// rvalue
+				add_LD(Register::general1, 0x0000, Register::general1);
+			}
+		}
+
 		// call-expression:
 		//     postfix-expression argument-list
 		void visit(CallExpressionNode& node)

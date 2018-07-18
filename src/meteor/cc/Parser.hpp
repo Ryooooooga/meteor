@@ -727,6 +727,10 @@ namespace meteor::cc
 					// address-expression
 					return parseAddressExpression();
 
+				case TokenKind::star:
+					// dereference-expression
+					return parseDereferenceExpression();
+
 				// TODO: unary-expression
 
 				default:
@@ -775,6 +779,20 @@ namespace meteor::cc
 			auto operand = parseUnaryExpression();
 
 			return std::make_unique<AddressExpressionNode>(token->line(), std::move(operand));
+		}
+
+		// dereference-expression:
+		//     '*' unary-expression
+		[[nodiscard]]
+		std::unique_ptr<ExpressionNode> parseDereferenceExpression()
+		{
+			// '*'
+			const auto token = matchToken(TokenKind::star);
+
+			// unary-expression
+			auto operand = parseUnaryExpression();
+
+			return std::make_unique<DereferenceExpressionNode>(token->line(), std::move(operand));
 		}
 
 		// postfix-expression:
