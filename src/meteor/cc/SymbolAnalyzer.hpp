@@ -362,6 +362,60 @@ namespace meteor::cc
 			node.typeInfo({}, node.right().typeInfo(), false);
 		}
 
+		// bitwise-or-expression:
+		//     bitwise-or-expression '|' bitwise-xor-expression
+		void visit(BitwiseOrExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo() || *node.left().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operands of binary operator '|' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
+		// bitwise-xor-expression:
+		//     bitwise-xor-expression '|' bitwise-and-expression
+		void visit(BitwiseXorExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo() || *node.left().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operands of binary operator '^' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
+		// bitwise-and-expression:
+		//     bitwise-and-expression '|' equality-expression
+		void visit(BitwiseAndExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+			// right-hand-side
+			node.right().accept(*this);
+
+			if (*node.left().typeInfo() != *node.right().typeInfo() || *node.left().typeInfo() != *m_intType)
+			{
+				reportError(node, u8"operands of binary operator '&' must have a type of 'int'.");
+			}
+
+			// Resolve the type.
+			node.typeInfo({}, m_intType, false);
+		}
+
 		// addition-expression:
 		//     additive-expression '+' mutiplicative-expression
 		void visit(AdditionExpressionNode& node)

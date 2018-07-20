@@ -184,6 +184,33 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(BitwiseOrExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"BitwiseOrExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"BitwiseOrExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(BitwiseXorExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"BitwiseXorExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"BitwiseXorExpressionNode");
+			visitChildren(node);
+		}
+
+		void visit(BitwiseAndExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"BitwiseAndExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"BitwiseAndExpressionNode");
+			visitChildren(node);
+		}
+
 		void visit(AdditionExpressionNode& node)
 		{
 			if (node.typeInfo())

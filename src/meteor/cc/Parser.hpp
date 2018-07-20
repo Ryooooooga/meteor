@@ -558,7 +558,17 @@ namespace meteor::cc
 			// bitwise-xor-expression
 			left = parseBitwiseXorExpression(std::move(left));
 
-			// TODO: {'|' bitwise-xor-expression}*
+			// {'|' bitwise-xor-expression}*
+			while (peekToken()->kind() == TokenKind::verticalBar)
+			{
+				// '|'
+				const auto token = matchToken(TokenKind::verticalBar);
+
+				// bitwise-xor-expression
+				auto right = parseBitwiseXorExpression(parseUnaryExpression());
+
+				left = std::make_unique<BitwiseOrExpressionNode>(token->line(), std::move(left), std::move(right));
+			}
 
 			return std::move(left);
 		}
@@ -571,7 +581,17 @@ namespace meteor::cc
 			// bitwise-and-expression
 			left = parseBitwiseAndExpression(std::move(left));
 
-			// TODO: {'^' bitwise-and-expression}*
+			// {'^' bitwise-and-expression}*
+			while (peekToken()->kind() == TokenKind::caret)
+			{
+				// '^'
+				const auto token = matchToken(TokenKind::caret);
+
+				// bitwise-and-expression
+				auto right = parseBitwiseAndExpression(parseUnaryExpression());
+
+				left = std::make_unique<BitwiseXorExpressionNode>(token->line(), std::move(left), std::move(right));
+			}
 
 			return std::move(left);
 		}
@@ -584,7 +604,17 @@ namespace meteor::cc
 			// equality-expression
 			left = parseEqualityExpression(std::move(left));
 
-			// TODO: {'&' equality-expression}*
+			// {'&' equality-expression}*
+			while (peekToken()->kind() == TokenKind::ampersand)
+			{
+				// '&'
+				const auto token = matchToken(TokenKind::ampersand);
+
+				// equality-expression
+				auto right = parseEqualityExpression(parseUnaryExpression());
+
+				left = std::make_unique<BitwiseAndExpressionNode>(token->line(), std::move(left), std::move(right));
+			}
 
 			return std::move(left);
 		}

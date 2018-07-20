@@ -736,6 +736,48 @@ namespace meteor::cc
 		}
 	};
 
+	// bitwise-or-expression:
+	//     bitwise-or-expression '|' bitwise-xor-expression
+	class BitwiseOrExpressionNode
+		: public BinaryExpressionNode
+	{
+	public:
+		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// bitwise-xor-expression:
+	//     bitwise-xor-expression '|' bitwise-and-expression
+	class BitwiseXorExpressionNode
+		: public BinaryExpressionNode
+	{
+	public:
+		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
+	// bitwise-and-expression:
+	//     bitwise-and-expression '|' equality-expression
+	class BitwiseAndExpressionNode
+		: public BinaryExpressionNode
+	{
+	public:
+		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// addition-expression:
 	//     additive-expression '+' mutiplicative-expression
 	class AdditionExpressionNode

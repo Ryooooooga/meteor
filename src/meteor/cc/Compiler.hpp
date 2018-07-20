@@ -366,6 +366,63 @@ namespace meteor::cc
 			add_ST(Register::general2, 0x0000, Register::general1);
 		}
 
+		// bitwise-or-expression:
+		//     bitwise-or-expression '|' bitwise-xor-expression
+		void visit(BitwiseOrExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
+
+			// left-hand-side
+			node.left().accept(*this);
+
+			// POP GR2
+			add_POP(Register::general2);
+			// OR GR1, GR2
+			add_OR(Register::general1, Register::general2);
+		}
+
+		// bitwise-xor-expression:
+		//     bitwise-xor-expression '|' bitwise-and-expression
+		void visit(BitwiseXorExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
+
+			// left-hand-side
+			node.left().accept(*this);
+
+			// POP GR2
+			add_POP(Register::general2);
+			// XOR GR1, GR2
+			add_XOR(Register::general1, Register::general2);
+		}
+
+		// bitwise-and-expression:
+		//     bitwise-and-expression '|' equality-expression
+		void visit(BitwiseAndExpressionNode& node)
+		{
+			// right-hand-side
+			node.right().accept(*this);
+
+			// PUSH #0000, GR1
+			add_PUSH(0x0000, Register::general1);
+
+			// left-hand-side
+			node.left().accept(*this);
+
+			// POP GR2
+			add_POP(Register::general2);
+			// AND GR1, GR2
+			add_AND(Register::general1, Register::general2);
+		}
+
 		// addition-expression:
 		//     additive-expression '+' mutiplicative-expression
 		void visit(AdditionExpressionNode& node)
@@ -602,6 +659,24 @@ namespace meteor::cc
 		{
 			addWord(operations::instruction(operations::subl_adr, r, x));
 			addWord(adr);
+		}
+
+		// OR r1, r2
+		void add_OR(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::or_r, r1, r2));
+		}
+
+		// XOR r1, r2
+		void add_XOR(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::xor_r, r1, r2));
+		}
+
+		// AND r1, r2
+		void add_AND(Register r1, Register r2)
+		{
+			addWord(operations::instruction(operations::and_r, r1, r2));
 		}
 
 		// CPA r, adr, x
