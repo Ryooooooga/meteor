@@ -334,6 +334,17 @@ namespace meteor::cc
 			}
 		}
 
+		// comma-expression:
+		//     comma-expression ',' assignment-expression
+		void visit(CommaExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+
+			// right-hand-side
+			node.right().accept(*this);
+		}
+
 		// assignment-expression:
 		//     unary-expression '=' assignment-expression
 		void visit(AssignmentExpressionNode& node)

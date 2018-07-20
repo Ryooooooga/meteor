@@ -708,6 +708,20 @@ namespace meteor::cc
 		}
 	};
 
+	// comma-expression:
+	//     comma-expression ',' assignment-expression
+	class CommaExpressionNode
+		: public BinaryExpressionNode
+	{
+	public:
+		using BinaryExpressionNode::BinaryExpressionNode;
+
+		void accept(IVisitor& visitor) override
+		{
+			visitor.visit(*this);
+		}
+	};
+
 	// assignment-expression:
 	//     unary-expression '=' assignment-expression
 	class AssignmentExpressionNode

@@ -324,6 +324,20 @@ namespace meteor::cc
 			node.declarator().accept(*this);
 		}
 
+		// comma-expression:
+		//     assignment-expression {',' assignment-expression}*
+		void visit(CommaExpressionNode& node)
+		{
+			// left-hand-side
+			node.left().accept(*this);
+
+			// right-hand-side
+			node.right().accept(*this);
+
+			// Resolve the type.
+			node.typeInfo({}, node.right().typeInfo(), false);
+		}
+
 		// assignment-expression:
 		//     unary-expression '=' assignment-expression
 		void visit(AssignmentExpressionNode& node)

@@ -166,6 +166,15 @@ namespace meteor::cc
 			visitChildren(node);
 		}
 
+		void visit(CommaExpressionNode& node)
+		{
+			if (node.typeInfo())
+				write(u8"CommaExpressionNode <%1% : %2%>", node.typeInfo()->name(), node.isLvalue() ? u8"lvalue" : u8"rvalue");
+			else
+				write(u8"CommaExpressionNode");
+			visitChildren(node);
+		}
+
 		void visit(AssignmentExpressionNode& node)
 		{
 			if (node.typeInfo())

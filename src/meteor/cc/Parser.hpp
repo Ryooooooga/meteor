@@ -458,7 +458,17 @@ namespace meteor::cc
 			// assignment-expression
 			auto expression = parseAssignmentExpression();
 
-			// TODO: {',' assignment-expression}*
+			// {',' assignment-expression}*
+			while (peekToken()->kind() == TokenKind::comma)
+			{
+				// ','
+				const auto token = matchToken(TokenKind::comma);
+
+				// assignment-expression
+				auto right = parseAssignmentExpression();
+
+				expression = std::make_unique<CommaExpressionNode>(token->line(), std::move(expression), std::move(right));
+			}
 
 			return expression;
 		}
@@ -479,17 +489,17 @@ namespace meteor::cc
 			{
 				case TokenKind::assign:
 					// '=' assignment-expression
-					return parseAssignAssignmentExpression(std::move(left));
+					return parseAssignAssignmentExpressionRhs(std::move(left));
 
 				default:
 					// conditional-expression
-					return parseLogicalOrExpression(std::move(left));
+					return parseConditionalExpression(std::move(left));
 			}
 		}
 
 		// '=' assignment-expression
 		[[nodiscard]]
-		std::unique_ptr<ExpressionNode> parseAssignAssignmentExpression(std::unique_ptr<ExpressionNode>&& left)
+		std::unique_ptr<ExpressionNode> parseAssignAssignmentExpressionRhs(std::unique_ptr<ExpressionNode>&& left)
 		{
 			// '='
 			const auto token = matchToken(TokenKind::assign);
@@ -632,7 +642,7 @@ namespace meteor::cc
 		std::unique_ptr<ExpressionNode> parseAdditiveExpression(std::unique_ptr<ExpressionNode>&& left)
 		{
 			// multiplicative-expression
-			left = parseMultiplicativeExpression(std::move(left));
+			left = parseMultiplicativeExpressionRhs(std::move(left));
 
 			// {additive-operator multiplicative-expression}*
 			while (true)
@@ -641,12 +651,12 @@ namespace meteor::cc
 				{
 					case TokenKind::plus:
 						// addtion-expression
-						left = parseAdditionExpression(std::move(left));
+						left = parseAdditionExpressionRhs(std::move(left));
 						break;
 
 					case TokenKind::minus:
 						// subtraction-expression
-						left = parseSubtractionExpression(std::move(left));
+						left = parseSubtractionExpressionRhs(std::move(left));
 						break;
 
 					default:
@@ -657,7 +667,7 @@ namespace meteor::cc
 
 		// '+' mutiplicative-expression
 		[[nodiscard]]
-		std::unique_ptr<ExpressionNode> parseAdditionExpression(std::unique_ptr<ExpressionNode>&& left)
+		std::unique_ptr<ExpressionNode> parseAdditionExpressionRhs(std::unique_ptr<ExpressionNode>&& left)
 		{
 			// '+'
 			const auto token = matchToken(TokenKind::plus);
@@ -670,7 +680,7 @@ namespace meteor::cc
 
 		// '-' mutiplicative-expression
 		[[nodiscard]]
-		std::unique_ptr<ExpressionNode> parseSubtractionExpression(std::unique_ptr<ExpressionNode>&& left)
+		std::unique_ptr<ExpressionNode> parseSubtractionExpressionRhs(std::unique_ptr<ExpressionNode>&& left)
 		{
 			// '-'
 			const auto token = matchToken(TokenKind::minus);
@@ -691,11 +701,11 @@ namespace meteor::cc
 			// unary-expression
 			auto left = parseUnaryExpression();
 
-			return parseMultiplicativeExpression(std::move(left));
+			return parseMultiplicativeExpressionRhs(std::move(left));
 		}
 
 		[[nodiscard]]
-		std::unique_ptr<ExpressionNode> parseMultiplicativeExpression(std::unique_ptr<ExpressionNode>&& left)
+		std::unique_ptr<ExpressionNode> parseMultiplicativeExpressionRhs(std::unique_ptr<ExpressionNode>&& left)
 		{
 			// TODO: {multiplicative-operator unary-expression}*
 

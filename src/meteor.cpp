@@ -47,7 +47,7 @@ int main()
 
 				a = 10;
 				p = &a;
-				*p = 42;
+				*p = 42,
 				b = *p;
 
 				return b;
