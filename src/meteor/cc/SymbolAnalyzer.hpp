@@ -423,6 +423,11 @@ namespace meteor::cc
 			// operand
 			node.operand().accept(*this);
 
+			if (!node.operand().isLvalue())
+			{
+				reportError(node, u8"operand of unary operator '&' must be a lvalue.");
+			}
+
 			// Resolve the type.
 			node.typeInfo({}, std::make_shared<PointerTypeInfo>(node.operand().typeInfo()), false);
 		}
